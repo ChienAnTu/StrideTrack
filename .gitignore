@@ -1,2 +1,5 @@
-# Ignore all of the python env file
+# Ignore all of the Python env file
 /application-ev
+
+# Ignores all of the Python cache files.
+/app/__pycache__
