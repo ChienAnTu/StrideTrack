@@ -3,3 +3,4 @@
 
 # Ignores all of the Python cache files.
 /app/__pycache__
+/node_modules
