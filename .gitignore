@@ -1,6 +1,9 @@
 # Ignore all of the Python env file
 /application-ev
 
+# Ignore all of the Python virtual environment files
+venv/
+
 # Ignores all of the Python cache files.
 /app/__pycache__
 /node_modules
