@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TrailMate{% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="{{ url_for('static', filename='style.css') }}"></script>
+    <script src="{{ url_for('static', filename='styles/style.css') }}"></script>
 </head>
 
 <body>
@@ -17,7 +17,7 @@
                     <a href="#" class="-m-1.5 p-1.5">
                         <span class="sr-only">TrailMate</span>
                         <div class="flex items-center space-x-2">
-                            <img class="h-8 w-auto" src="{{ url_for('static', filename='logo.svg') }}" alt="TrailMate">
+                            <img class="h-8 w-auto" src="{{ url_for('static', filename='images/logo.svg') }}" alt="TrailMate">
                             <h1 class="text-2xl font-bold text-gray-900">TrailMate</h1>
                         </div>
                     </a>
