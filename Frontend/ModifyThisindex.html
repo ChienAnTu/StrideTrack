@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="./app/static/styles/output.css" rel="stylesheet">
+    <!-- <link href="/static/styles/output.css" rel="stylesheet"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
+
 </head>
 
 <body>
@@ -16,7 +18,7 @@
                         <a href="#" class="-m-1.5 p-1.5">
                             <span class="sr-only">TrailMate</span>
                             <div class="flex items-center space-x-2">
-                                <img class="h-8 w-auto" src="app/static/images/logo.svg" alt="TrailMate">
+                                <img class="h-8 w-auto" src="/static/images/logo.svg" alt="TrailMate">
                                 <h1 class="text-2xl font-bold text-gray-900">TrailMate</h1>
                             </div>
                         </a>
@@ -57,7 +59,7 @@
                 </div>
                 <div class="flex flex-wrap justify-center gap-x-25 gap-y-8 p-8 bg-white">
                     <div class="w-64 shadow-lg rounded-lg overflow-hidden">
-                        <img src="./app/static/images/background1.jpg" alt="Card 1" class="w-full h-48 object-cover">
+                        <img src="/static/images/background1.jpg" alt="Card 1" class="w-full h-48 object-cover">
                         <div class="p-4">
                             <h3 class="text-lg font-semibold text-gray-800">Track Every Ride</h3>
                             <p class="text-sm text-gray-600">Log your distance, speed, and elevation on all your cycling
@@ -65,7 +67,7 @@
                         </div>
                     </div>
                     <div class="w-64 shadow-lg rounded-lg overflow-hidden">
-                        <img src="./app/static/images/background2.jpg" alt="Card 2" class="w-full h-48 object-cover">
+                        <img src="/static/images/background2.jpg" alt="Card 2" class="w-full h-48 object-cover">
                         <div class="p-4">
                             <h3 class="text-lg font-semibold text-gray-800">Explore New Routes</h3>
                             <p class="text-sm text-gray-600">Discover scenic trails and hidden paths curated by the
@@ -73,7 +75,7 @@
                         </div>
                     </div>
                     <div class="w-64 shadow-lg rounded-lg overflow-hidden">
-                        <img src="./app/static/images/background3.jpg" alt="Card 3" class="w-full h-48 object-cover">
+                        <img src="/static/images/background3.jpg" alt="Card 3" class="w-full h-48 object-cover">
                         <div class="p-4">
                             <h3 class="text-lg font-semibold text-gray-800">Analyze Your Progress</h3>
                             <p class="text-sm text-gray-600">Get visual insights into your performance trends and
@@ -243,6 +245,6 @@
 
 </body>
 
-<script src="/StrideTrack/app/static/script/script.js"></script>
+<script src="/static/script/script.js"></script>
 
 </html>
