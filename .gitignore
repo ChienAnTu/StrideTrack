@@ -5,5 +5,9 @@
 venv/
 
 # Ignores all of the Python cache files.
+__pycache__/
 /app/__pycache__
 /node_modules
+
+# Ignore structure file
+structure.txt

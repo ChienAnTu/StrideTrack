@@ -47,15 +47,23 @@ activated.
 ### 3. Installing Requirements
 Once you have activated the VE, in the root folder, run the command `pip install -r requirement.txt` and install all of the required dependencies.
 ### 4. Running Flask
-Using `flask run` you can run the Flask server, it should say `Running on http://127.0.0.1:5000`, which means the local server has successfully been deployed. Open the link in a web browser to visit the homepage.
+
+#### Using `flask run` to run the server
+
+Using `flask run` command under project root directory like`YourPath/StrideTrack`  you can run the Flask server, it should say `Running on http://127.0.0.1:5000`, which means the local server has successfully been deployed. Open the link in a web browser to visit the homepage.
 
 To close and stop the server, Key in `Ctrl+C` at the terminal.
 
 > [!NOTE]
 >
+> **Use Debug Mode**
+>
 > You can use `debug mode` to get the instance response upon every changes in your script so that you don't have to stop the server and re-run it to render changes.
 >
-> The command for this is:`flask --debug run`
+> **The command for this is:**`flask --debug run`
 >
 > (You may have to refresh the browser to render changes)
 
+#### Using `python3 run.py` to run the server
+
+You can also run the `python3 run.py` command under the same directory of your terminal to run the Flask server.
