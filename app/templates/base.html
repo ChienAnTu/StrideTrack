@@ -10,7 +10,33 @@
 
 <body class="bg-white">
     <!-- Navbar -->
-
+    <nav class="bg-white shadow-sm w-full z-10">
+        <div class="mx-auto max-w-7xl px-6 lg:px-8">
+          <div class="flex h-16 items-center justify-between">
+            <!-- Logo -->
+            <a href="{{ url_for('index') }}" class="flex items-center space-x-2">
+              <img class="h-6 w-6" src="{{ url_for('static', filename='images/logo.svg') }}" alt="TrailMate">
+              <span class="text-xl font-bold text-gray-900">TrailMate</span>
+            </a>
+      
+            <!-- Page Links -->
+            <div class="flex items-center space-x-6">
+              <a href="{{ url_for('dashboard') }}"
+                 class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/dashboard' %}bg-gray-900 text-orange-500{% endif %}">
+                Dashboard
+              </a>
+              <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
+                Share Data
+              </a>
+              <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
+                Upload Data
+              </a>
+              <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+            </div>
+          </div>
+        </div>
+      </nav>
+      
   
     {% block content %}
     <!-- Each page will insert its own content here -->

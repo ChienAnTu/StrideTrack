@@ -2,22 +2,7 @@
 
 {% block content %}
 <!-- Navbar -->
-<nav class="bg-white shadow-sm fixed w-full z-10">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="flex h-16 items-center justify-between">
-      <div class="flex items-center gap-2">
-        <img class="h-8 w-8" src="{{ url_for('static', filename='images/logo.svg') }}" alt="TrailMate">
-        <h1 class="text-2xl font-bold">TrailMate</h1>
-      </div>
-      <div class="space-x-4">
-        <a href="{{ url_for('dashboard') }}" class="px-3 py-2 text-sm font-medium bg-gray-900 text-orange-500 rounded-md">Dashboard</a>
-        <a href="#" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 rounded-md">Challenges</a>
-        <a href="#" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 rounded-md">Community</a>
-        <a href="#" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 rounded-md">Log out</a>
-      </div>
-    </div>
-  </div>
-</nav>
+
 
 <!-- Sidebar + Main Content -->
 <div class="flex pt-16">
