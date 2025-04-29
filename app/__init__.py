@@ -12,7 +12,9 @@ def create_app():
     migrate.init_app(app, db)
     # -----------------------------------
 
-    from app import routes
+    # Register routes here
+    from app.routes import register_routes
+    register_routes(app)
 
     return app
 
