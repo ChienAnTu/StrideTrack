@@ -1,5 +1,7 @@
-from app import db
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
 
 class User(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[str]
