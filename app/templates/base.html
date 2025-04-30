@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrailMate</title>
+    <!-- Title -->
+    {% if title %}
+      {% if user.username %}
+        <title>{{ title }} - {{ user.username }}</title>
+      {% else %}
+        <title>{{ title }}</title>
+      {% endif %}
+    {% else %}
+      <title>TrailMate</title>
+    {% endif %}
+  
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
 </head>
