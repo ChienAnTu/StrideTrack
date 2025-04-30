@@ -9,5 +9,10 @@ def register_routes(app):
 
     @app.route('/dashboard')
     def dashboard():
-        return render_template('dashboard.html')
+        render_args = {
+            'title': "Dashboard",
+            'user': {'username': 'User'}  # TODO: Replace with actual log-in user name
+        }
+        return render_template('dashboard.html', **render_args)
+        
 
