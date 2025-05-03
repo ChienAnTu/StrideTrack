@@ -9,7 +9,7 @@ class User(db.Model):
     email: Mapped[str] = mapped_column(unique=True) 
 
 class ActivityRegistry(db.Model):
-    user_id: Mapped[int] = mapped_column(ForeignKey('User.id'), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey(User.user_id), primary_key=True)
     upload_time: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(nullable=False)
