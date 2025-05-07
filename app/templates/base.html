@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
+  
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,8 @@
   
     <!-- CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles/output.css') }}">
+    <link rel="icon" type="image/svg+xml" href="/static/images/logo.svg">
+    
 </head>
 
 <body class="bg-white">
@@ -38,9 +41,11 @@
               <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
                 Share Data
               </a>
-              <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
+              <a href="{{ url_for('calories') }}"
+                class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/calories' %}bg-gray-900 text-orange-500{% endif %}">
                 Upload Data
               </a>
+
               <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
             </div>
           </div>
