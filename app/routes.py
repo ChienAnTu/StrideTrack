@@ -1,4 +1,7 @@
 from flask import render_template, request, redirect, url_for, session
+from flask import request, redirect, url_for, session, flash
+from app.models import User, db
+
 
 # from app import db  # Uncomment if using database
 
@@ -57,4 +60,45 @@ def register_routes(app):
             calories=calories_burned,
             user={'username': 'Guest'}
         )
+    
+    @app.route('/register', methods=['POST'])
+    def register():
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Check if user exists
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.')
+            return redirect(url_for('index'))
+
+        user = User(username=username, email=email)
+        user.set_password(password)
+
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration successful! Please login.')
+        return redirect(url_for('index'))
+
+    @app.route('/login', methods=['POST'])
+    def login():
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            session['user_id'] = user.user_id
+            session['username'] = user.username
+            flash('Login successful!')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid credentials.')
+            return redirect(url_for('index'))
+
+    @app.route('/logout')
+    def logout():
+        session.clear()
+        flash('You have been logged out.')
+        return redirect(url_for('index'))
+
 
