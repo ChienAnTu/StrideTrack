@@ -1,12 +1,22 @@
 from sqlalchemy import Integer, String, Date, Time, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
-from app import db
+from app.database import db
 from datetime import date, time, datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 class User(db.Model):
     user_id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True) 
+    password_hash: Mapped[str] = mapped_column(nullable=False)
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
 
 class ActivityRegistry(db.Model):
     user_id: Mapped[int] = mapped_column(ForeignKey(User.user_id), primary_key=True)
@@ -14,3 +24,5 @@ class ActivityRegistry(db.Model):
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(nullable=False)
     activity_length: Mapped[time] = mapped_column(Time,nullable=False)
+
+    
