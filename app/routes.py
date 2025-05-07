@@ -15,4 +15,3 @@ def register_routes(app):
         }
         return render_template('dashboard.html', **render_args)
         
-
