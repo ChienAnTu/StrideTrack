@@ -10,6 +10,7 @@ def create_app():
     # ----Attach database to app here----
     db.init_app(app)
     login.init_app(app)
+    login.login_view = "index"  # Default login view
     migrate.init_app(app, db)
     # -----------------------------------
 

@@ -14,6 +14,7 @@ def register_routes(app):
         return render_template('index.html')
 
     @app.route('/dashboard')
+    @login_required
     def dashboard():
         calories_burned = session.get('calories_burned')
         selected_activity = session.get('selected_activity')
@@ -68,13 +69,14 @@ def register_routes(app):
         data = request.get_json()
         email = data.get("email")
         password = data.get("password")
+        remember = data.get("remember", False)
 
         if not email or not password:
             return jsonify({"success": False, "error": "Email and password required."})
 
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
-            login_user(user)
+            login_user(user, remember=remember)
             return jsonify({"success": True, "redirect": url_for("dashboard")})
         else:
             return jsonify({"success": False, "error": "Invalid email or password."})
@@ -86,7 +88,7 @@ def register_routes(app):
     def logout():
         logout_user()
         flash("You have been logged out.", "info")
-        return redirect(url_for("login"))
+        return redirect(url_for("index"))
 
 
     @app.route('/calories', methods=['GET', 'POST'])

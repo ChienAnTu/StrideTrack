@@ -32,11 +32,12 @@ document.querySelector('#loginModal form').addEventListener('submit', function (
 
   const email = document.querySelector('#loginModal input[name="email"]').value;
   const password = document.querySelector('#loginModal input[name="password"]').value;
+  const remember = document.querySelector('#loginModal input[name="remember"]').checked;
 
   fetch('/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password, remember })
   })
     .then(res => res.json())
     .then(data => {

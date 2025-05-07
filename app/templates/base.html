@@ -25,13 +25,21 @@
     <!-- Navbar -->
     <nav class="bg-white shadow-sm fixed w-full z-10">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+
           <div class="flex h-16 items-center justify-between">
             <!-- Logo -->
             <a href="{{ url_for('index') }}" class="flex items-center space-x-2">
               <img class="h-6 w-6" src="{{ url_for('static', filename='images/logo.svg') }}" alt="TrailMate">
               <span class="text-xl font-bold text-gray-900">TrailMate</span>
             </a>
-      
+            
+            {% if current_user.is_authenticated %}
+            <div class="bg-orange-50 text-orange-800 text-sm px-4 py-2 text-center">  <!-- TODO: please modify style -->
+              Hi, {{ current_user.first_name }} {{ current_user.last_name }}
+            </div>
+            {% endif %}
+
             <!-- Page Links -->
             <div class="flex items-center space-x-6">
               <a href="{{ url_for('dashboard') }}"
@@ -46,7 +54,13 @@
                 Upload Data
               </a>
 
-              <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+              <!-- <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a> -->
+              {% if current_user.is_authenticated %}
+              <a href="{{ url_for('logout') }}" class="text-sm font-semibold text-red-600">Logout</a>
+              {% else %}
+                <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+              {% endif %}
+            
             </div>
           </div>
         </div>
