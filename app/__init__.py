@@ -1,7 +1,7 @@
 from flask import Flask
 # Import backend modules below
 from app.config import Config
-from app.database import db, migrate
+from app.database import db, migrate, login
 
 def create_app():
     app = Flask(__name__)
@@ -9,12 +9,15 @@ def create_app():
 
     # ----Attach database to app here----
     db.init_app(app)
+    login.init_app(app)
     migrate.init_app(app, db)
     # -----------------------------------
 
     # Register routes here
     from app.routes import register_routes
     register_routes(app)
+
+    from app import models
 
     return app
 
