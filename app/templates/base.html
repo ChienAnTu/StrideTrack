@@ -65,8 +65,16 @@
           </div>
         </div>
       </nav>
-      
-  
+    <!-- Flash messages -->
+    {% if request.args.get('logout') == '1' %}
+    <!-- TODO: Modify the alert style below: -->
+    <div id="logout-alert" class="fixed top-20 left-1/2 transform -translate-x-1/2 w-fit bg-blue-100 border border-blue-400 text-blue-800 px-4 py-2 rounded shadow z-50 flex items-center justify-between space-x-4">
+      <span>You have been logged out.</span>
+      <button onclick="document.getElementById('logout-alert').remove()" class="text-blue-600 hover:text-blue-800 font-bold">×</button>
+    </div>
+    {% endif %}
+    
+    
     {% block content %}
     <!-- Each page will insert its own content here -->
     {% endblock %}

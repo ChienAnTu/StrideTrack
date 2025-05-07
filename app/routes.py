@@ -87,8 +87,8 @@ def register_routes(app):
     @login_required
     def logout():
         logout_user()
-        flash("You have been logged out.", "info")
-        return redirect(url_for("index"))
+        # flash("You have been logged out.", "info")
+        return redirect(url_for("index", logout=1))
 
 
     @app.route('/calories', methods=['GET', 'POST'])
