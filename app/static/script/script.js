@@ -24,3 +24,53 @@ function openSignUp() {
       closeSignup();
     }
   });
+
+// Fetch module
+// Login modal
+document.querySelector('#loginModal form').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const email = document.querySelector('#loginModal input[name="email"]').value;
+  const password = document.querySelector('#loginModal input[name="password"]').value;
+
+  fetch('/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        window.location.href = data.redirect || '/dashboard';
+      } else {
+        alert(data.error || 'Login failed.');
+      }
+    });
+});
+
+// Register modal
+document.querySelector('#signupModal form').addEventListener('submit', function (e) {
+  e.preventDefault(); 
+
+  const email = document.querySelector('#signupModal input[name="email"]').value;
+  const password = document.querySelector('#signupModal input[name="password"]').value;
+  const confirmPassword = document.querySelector('#signupModal input[name="confirm-password"]').value;
+  const first_name = document.querySelector('#signupModal input[name="first-name"]').value;
+  const last_name = document.querySelector('#signupModal input[name="last-name"]').value;
+
+  fetch('/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, confirm_password: confirmPassword, first_name, last_name })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("Registration successful!");
+        closeSignup();
+        openSignIn();  // Open login modal after successful registration
+      } else {
+        alert(data.error || 'Registration failed.');
+      }
+    });
+});

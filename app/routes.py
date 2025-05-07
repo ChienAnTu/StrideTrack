@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 
 # from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
@@ -30,46 +30,55 @@ def register_routes(app):
 
 
     # === Register route ===
-    @app.route("/register", methods=["GET", "POST"])
+    @app.route("/register", methods=["POST"])
     def register():
         if current_user.is_authenticated:
-            return redirect(url_for("dashboard"))  # Re-direct if already logged in
+            return jsonify({"success": False, "redirect": url_for("dashboard")})
 
-        form = RegistrationForm()
-        if form.validate_on_submit():
-            # Set the user attributes from the form data
-            user = User(
-                email=form.email.data,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-            )
-            user.set_password(form.password.data)
+        data = request.get_json()
+        email = data.get("email")
+        password = data.get("password")
+        confirm_password = data.get("confirm_password")
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
 
-            db.session.add(user)
-            db.session.commit()
-            flash("Account created successfully! You can now log in.", "success")
-            return redirect(url_for("login"))
+        if not all([email, password, confirm_password, first_name, last_name]):
+            return jsonify({"success": False, "error": "All fields are required."})
 
-        return render_template("register.html", form=form)
+        if password != confirm_password:
+            return jsonify({"success": False, "error": "Passwords do not match."})
+
+        if User.query.filter_by(email=email).first():
+            return jsonify({"success": False, "error": "Email already registered."})
+
+        user = User(email=email, first_name=first_name, last_name=last_name)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify({"success": True, "message": "Registration successful."})
 
 
     # === Login route ===
-    @app.route("/login", methods=["GET", "POST"])
+    @app.route("/login", methods=["POST"])
     def login():
         if current_user.is_authenticated:
-            return redirect(url_for("dashboard"))
+            return jsonify({"success": True, "redirect": url_for("dashboard")})
 
-        form = LoginForm()
-        if form.validate_on_submit():
-            user = User.query.filter_by(email=form.email.data).first()
-            if user and user.check_password(form.password.data):
-                login_user(user)
-                flash("Login successful!", "success")
-                return redirect(url_for("dashboard"))
-            else:
-                flash("Invalid email or password.", "danger")
+        data = request.get_json()
+        email = data.get("email")
+        password = data.get("password")
 
-        return render_template("login.html", form=form)
+        if not email or not password:
+            return jsonify({"success": False, "error": "Email and password required."})
+
+        user = User.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            login_user(user)
+            return jsonify({"success": True, "redirect": url_for("dashboard")})
+        else:
+            return jsonify({"success": False, "error": "Invalid email or password."})
+
 
     # === Logout route ===
     @app.route("/logout")
