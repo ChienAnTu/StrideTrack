@@ -7,3 +7,4 @@ print(default_db_loc)
 
 class Config:
     SQLALCHEMY_DATABASE_URI = default_db_loc
+    SECRET_KEY = os.urandom(10)
