@@ -20,7 +20,7 @@ class User(db.Model):
 
 
 class ActivityRegistry(db.Model):
-    __tablename__ = "ActivityRegistry "
+    __tablename__ = "ActivityRegistry"
     user_id: Mapped[int] = mapped_column(ForeignKey(User.user_id), primary_key=True, name="upload_user_id")
     upload_time: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
