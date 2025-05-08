@@ -1,8 +1,9 @@
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-default_db_loc = 'sqlite:///' + os.path.join(basedir, 'app.db')  
+default_db_loc = 'sqlite:///' + os.path.join(basedir, 'app.db')
 
 class Config:
-    SQLALCHEMY_DATABASE_URI = default_db_loc
-    SECRET_KEY = os.urandom(10)
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASEURL') or default_db_loc
+    SECRET_KEY = '????'
+    

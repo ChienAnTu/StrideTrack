@@ -45,7 +45,7 @@ If there is a `(venv)` in brackets at the start of the line, that means the virt
 activated.
 
 ### 3. Installing Requirements
-Once you have activated the VE, in the root folder, run the command `pip install -r requirements.txt` and install all of the required dependencies.
+Once you have activated the VE, in the root folder, run the command `pip install -r requirement.txt` and install all of the required dependencies.
 ### 4. Running Flask
 
 #### Using `flask run` to run the server

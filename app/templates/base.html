@@ -46,15 +46,7 @@
                 Upload Data
               </a>
 
-              {% if g.user %}
-              <div class="flex items-center space-x-3 border-l pl-4 border-gray-300">
-                <span class="text-sm font-medium text-gray-700">👤 {{ g.user.username }}</span>
-                <a href="{{ url_for('logout') }}" class="text-sm font-semibold text-red-500 hover:text-red-700">Logout</a>
-              </div>
-              {% else %}
-                <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
-              {% endif %}
-
+              <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
             </div>
           </div>
         </div>
