@@ -46,7 +46,11 @@
                 Upload Data
               </a>
 
-              <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+              {% if g.user %}
+                <span class="text-sm font-semibold text-gray-900">{{ g.user.username }}</span>
+              {% else %}
+                <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span aria-hidden="true">&rarr;</span></a>
+              {% endif %}
             </div>
           </div>
         </div>
