@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, session
 from flask import request, redirect, url_for, session, flash
 from app.models import User, db, ActivityRegistry
 from datetime import datetime, timedelta
+from flask_login import login_user, logout_user, login_required, current_user
 
 
 
@@ -14,6 +15,7 @@ def register_routes(app):
         return render_template('index.html')
 
     @app.route('/dashboard')
+    @login_required
     def dashboard():
         calories_burned = session.get('calories_burned')
         selected_activity = session.get('selected_activity')
@@ -22,7 +24,7 @@ def register_routes(app):
         return render_template(
             'dashboard.html',
             title="Dashboard",
-            user={'username': 'User'},
+            user=current_user,
             calories=calories_burned,
             activity=selected_activity,
             duration=duration
@@ -31,6 +33,7 @@ def register_routes(app):
 
 
     @app.route('/calories', methods=['GET', 'POST'])
+    @login_required
     def calories():
         calories_burned = None
         if request.method == 'POST':
@@ -58,7 +61,8 @@ def register_routes(app):
 
                 # Insert into ActivityRegistry
                 try:
-                    user_id = session.get('user_id', 1)  # use actual user ID if available
+                    # user_id = session.get('user_id', 1)  # use actual user ID if available
+                    user_id = current_user.id
                     now = datetime.now()
                     activity_length = (datetime.min + timedelta(minutes=duration)).time()
 
@@ -81,7 +85,8 @@ def register_routes(app):
             'calories.html',
             title="Calorie Calculator",
             calories=calories_burned,
-            user={'username': 'Guest'}
+            # user={'username': 'Guest'}
+            user=current_user
         )
     
     @app.route('/register', methods=['POST'])
@@ -110,8 +115,9 @@ def register_routes(app):
 
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
-            session['user_id'] = user.user_id
-            session['username'] = user.username
+            # session['user_id'] = user.user_id
+            # session['username'] = user.username
+            login_user(user)
             flash('Login successful!')
             return redirect(url_for('dashboard'))
         else:
@@ -120,7 +126,8 @@ def register_routes(app):
 
     @app.route('/logout')
     def logout():
-        session.clear()
+        # session.clear()
+        logout_user()
         flash('You have been logged out.')
         return redirect(url_for('index'))
 
