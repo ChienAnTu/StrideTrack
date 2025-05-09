@@ -1,6 +1,8 @@
 from flask import render_template, request, redirect, url_for, session
 from flask import request, redirect, url_for, session, flash
-from app.models import User, db
+from app.models import User, db, ActivityRegistry
+from datetime import datetime, timedelta
+
 
 
 # from app import db  # Uncomment if using database
@@ -48,9 +50,30 @@ def register_routes(app):
             if activity in met_values:
                 met = met_values[activity]
                 calories_burned = round(duration * met * weight * 0.0175, 2)
+
+                # Save to session
                 session['calories_burned'] = calories_burned
-                session['selected_activity'] = activity.title()  # Save capitalized activity
-                session['duration'] = duration  
+                session['selected_activity'] = activity.title()
+                session['duration'] = duration
+
+                # Insert into ActivityRegistry
+                try:
+                    user_id = session.get('user_id', 1)  # use actual user ID if available
+                    now = datetime.now()
+                    activity_length = (datetime.min + timedelta(minutes=duration)).time()
+
+                    new_entry = ActivityRegistry(
+                        upload_user_id=user_id,
+                        upload_time=now,
+                        activity_date=now.date(),
+                        activity_type=activity,
+                        activity_length=activity_length
+                    )
+
+                    db.session.add(new_entry)
+                    db.session.commit()
+                except Exception as e:
+                    print("Activity insert failed:", e)
 
                 return redirect(url_for('dashboard'))
 
