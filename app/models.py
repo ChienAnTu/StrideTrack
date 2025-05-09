@@ -19,6 +19,14 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def __repr__(self):
+        return f"<User {self.username}>"
+    
+    @property
+    def id(self):
+        return self.user_id
+
+
 
 class ActivityRegistry(db.Model):
     __tablename__ = "ActivityRegistry"
