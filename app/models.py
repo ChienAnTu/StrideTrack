@@ -20,11 +20,11 @@ class User(db.Model):
 
 
 class ActivityRegistry(db.Model):
-    __tablename__ = "ActivityRegistry "
-    user_id: Mapped[int] = mapped_column(ForeignKey(User.user_id), primary_key=True, name="upload_user_id")
+    __tablename__ = "ActivityRegistry"
+    upload_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), primary_key=True)
     upload_time: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(nullable=False)
-    activity_length: Mapped[time] = mapped_column(Time,nullable=False)
+    activity_length: Mapped[time] = mapped_column(Time, nullable=False)
 
     
