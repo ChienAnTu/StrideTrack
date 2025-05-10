@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="pt-20 max-w-5xl mx-auto px-4 space-y-8">
+  <h2 class="text-2xl font-semibold mb-4">Your Activity Progress</h2>
+
+  <div class="bg-white p-6 rounded-xl shadow-md">
+    <h3 class="text-xl font-bold mb-4">Time Spent on Each Activity</h3>
+    <canvas id="activityTimeChart" height="150"></canvas>
+  </div>
+</div>
+
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script id="activity-data" type="application/json">
+  {{ activities | tojson | safe }}
+</script>
+
+<script>
+  //Visualizing graph
+const rawDataScript = document.getElementById('activity-data');
+const rawData = rawDataScript ? JSON.parse(rawDataScript.textContent) : [];
+  const activityTotals = {};
+
+  rawData.forEach(a => {
+    const [h, m, s] = a.activity_length.split(':').map(Number);
+    const totalMinutes = h * 60 + m + s / 60;
+
+    if (!activityTotals[a.activity_type]) {
+      activityTotals[a.activity_type] = 0;
+    }
+    activityTotals[a.activity_type] += totalMinutes;
+  });
+
+  const ctx = document.getElementById('activityTimeChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(activityTotals),
+      datasets: [{
+        label: 'Total Minutes',
+        data: Object.values(activityTotals),
+        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+        borderRadius: 10
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Minutes' }
+        },
+        x: {
+          title: { display: true, text: 'Activity Type' }
+        }
+      }
+    }
+  });
+</script>
+
+
+<!-- Pass JSON from Flask to JS -->
+
+{% endblock %}
