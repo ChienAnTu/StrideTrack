@@ -3,9 +3,10 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.database import db
 from datetime import date, time, datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = "Users"
     user_id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
@@ -17,6 +18,14 @@ class User(db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return f"<User {self.username}>"
+    
+    @property
+    def id(self):
+        return self.user_id
+
 
 
 class ActivityRegistry(db.Model):
