@@ -71,7 +71,8 @@ def register_routes(app):
                         upload_time=now,
                         activity_date=now.date(),
                         activity_type=activity,
-                        activity_length=activity_length
+                        activity_length=activity_length,
+                        calories_burned=calories_burned 
                     )
 
                     db.session.add(new_entry)
@@ -123,6 +124,24 @@ def register_routes(app):
         else:
             flash('Invalid credentials.')
             return redirect(url_for('index'))
+        
+    @app.route('/visualise')
+    @login_required
+    def visualise():
+        records = ActivityRegistry.query.filter_by(upload_user_id=current_user.id).all()
+
+        activities = [
+            {
+                "activity_type": r.activity_type,
+                "activity_length": str(r.activity_length),
+                "activity_date": r.activity_date.strftime('%Y-%m-%d'),
+                "calories_burned": r.calories_burned  # ✅ This is needed!
+            }
+            for r in records
+        ]
+
+        return render_template("visualise.html", activities=activities)
+
 
     @app.route('/logout')
     def logout():
