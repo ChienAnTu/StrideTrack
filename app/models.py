@@ -7,9 +7,8 @@ from flask_login import UserMixin
 
 class User(db.Model, UserMixin):
     __tablename__ = "Users"
-    user_id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
-    email: Mapped[str] = mapped_column(unique=True) 
+    email: Mapped[str] = mapped_column(unique=True, primary_key=True) 
     password_hash: Mapped[str] = mapped_column(nullable=False)
 
     def set_password(self, password):
@@ -20,15 +19,10 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f"<User {self.username}>"
-    
-    @property
-    def id(self):
-        return self.user_id
-
 
 class ActivityRegistry(db.Model):
     __tablename__ = "ActivityRegistry"
-    upload_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), primary_key=True)
+    upload_user_email: Mapped[int] = mapped_column(ForeignKey('Users.email'), primary_key=True)
     upload_time: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(nullable=False)
@@ -37,6 +31,6 @@ class ActivityRegistry(db.Model):
 
 class SharedActivity(db.Model):
     __tablename__ = "SharedActivity"
-    sharing_user: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.upload_user_id'), primary_key=True)
+    sharing_user: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.upload_user_email'), primary_key=True)
     activity_upload_time: Mapped[datetime] = mapped_column(ForeignKey('ActivityRegistry.upload_time'), primary_key=True)
-    user_shared_with: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), primary_key=True)
+    user_shared_with: Mapped[int] = mapped_column(ForeignKey('Users.email'), primary_key=True)
