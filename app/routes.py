@@ -4,8 +4,6 @@ from app.models import User, db, ActivityRegistry
 from datetime import datetime, timedelta
 from flask_login import login_user, logout_user, login_required, current_user
 
-
-
 # from app import db  # Uncomment if using database
 
 def register_routes(app):
@@ -122,7 +120,6 @@ def register_routes(app):
 
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password):
-            # session['user_id'] = user.user_id
             # session['username'] = user.username
             login_user(user)
             flash('Login successful!')
