@@ -30,7 +30,13 @@ def register_routes(app):
             duration=duration
         )
 
-
+    @app.route('/challenges')
+    def challenges():
+        return render_template(
+            'challenges.html',
+            title="Challenges",
+            user={'username': 'User'}
+        )
 
     @app.route('/calories', methods=['GET', 'POST'])
     @login_required
