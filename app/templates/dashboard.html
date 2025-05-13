@@ -13,22 +13,14 @@
       
             <!-- Page Links -->
             <div class="flex items-center space-x-6">
-              <a href="{{ url_for('dashboard') }}"
-                 class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/dashboard' %}bg-gray-900 text-orange-500{% endif %}">
-                Dashboard
-              </a>
-              <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
-                Share Data
-              </a>
-              <a href="{{ url_for('calories') }}"
-                class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/calories' %}bg-gray-900 text-orange-500{% endif %}">
-                Upload Data
-              </a>
-              {% if g.user %}
-              <div class="flex items-center space-x-3 border-l pl-4 border-gray-300">
-                <span class="text-sm font-medium text-gray-700">👤 {{ g.user.username }}</span>
-                <a href="{{ url_for('logout') }}" class="text-sm font-semibold text-red-500 hover:text-red-700">Logout</a>
-              </div>
+
+              {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/dashboard' %}bg-gray-900 text-orange-500{% endif %}">Dashboard</a>
+                <a href="{{ url_for('calories') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/calories' %}bg-gray-900 text-orange-500{% endif %}">Upload Data</a>
+                <div class="flex items-center space-x-3 border-l pl-4 border-gray-300">
+                  <span class="text-sm font-medium text-gray-700">👤 {{ current_user.username }}</span>
+                  <a href="{{ url_for('logout') }}" class="text-sm font-semibold text-red-500 hover:text-red-700">Logout</a>
+                </div>
               {% endif %}
 
             </div>
@@ -39,33 +31,9 @@
 <!-- Sidebar + Main Content -->
 <div class="flex pt-16">
   <!-- Sidebar -->
-  <aside id="default-sidebar"
-    class="fixed top-16 left-0 z-10 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-white border-r border-gray-200">
-    <div class="h-full p-4 overflow-y-auto">
-      <ul class="space-y-2 font-medium">
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="ms-3">Overview</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Workout</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Goals</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Progress</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </aside>
+  
+  {% include "_sidebar.html" %}
+
 
   <!-- Main content -->
   <main class="sm:ml-64 w-full p-4 mt-4">

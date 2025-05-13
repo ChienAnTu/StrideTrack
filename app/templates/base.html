@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Title -->
     {% if title %}
-      {% if user.username %}
-        <title>{{ title }} - {{ user.username }}</title>
+      {% if current_user.is_authenticated %}
+        <title>{{ title }} - {{ current_user.username }}</title>
       {% else %}
         <title>{{ title }}</title>
       {% endif %}
@@ -34,13 +34,12 @@
       
             <!-- Page Links -->
             <div class="flex items-center space-x-6">
-              <a href="{{ url_for('challenges') }}"
-                 class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/challenges' %}{% endif %}">
-                Challenges
-              </a>
-              {% if g.user %}
+              {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/dashboard' %}bg-gray-900 text-orange-500{% endif %}">Dashboard</a>
+
+                
               <div class="flex items-center space-x-3 border-l pl-4 border-gray-300">
-                <span class="text-sm font-medium text-gray-700">👤 {{ g.user.username }}</span>
+                <span class="text-sm font-medium text-gray-700">👤 {{ current_user.username }}</span>
                 <a href="{{ url_for('logout') }}" class="text-sm font-semibold text-red-500 hover:text-red-700">Logout</a>
               </div>
               {% else %}
@@ -52,37 +51,10 @@
         </div>
       </nav>
       
-  
+
     {% block content %}
     <!-- Each page will insert its own content here -->
     {% endblock %}
-      
-    <!-- Footer -->   
-    <section>
-      <footer class="bg-white dark:bg-gray-900">
-        <div class="mx-auto w-full max-w-screen-xl">
-          <div class="grid grid-cols-2 gap-8 px-4 py-6 lg:py-8 md:grid-cols-4">
-            <div>
-                <h2 class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">Company</h2>
-                <ul class="text-gray-500 dark:text-gray-400 font-medium">
-                    <li class="mb-4">
-                        <a href="#" class=" hover:underline">About</a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="hover:underline">Careers</a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="hover:underline">Brand Center</a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="hover:underline">Blog</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        </div>
-      </footer>
-    </section>
     <!-- JS -->
     <script src="{{ url_for('static', filename='script/script.js') }}"></script>
 </body>
