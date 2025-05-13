@@ -1,10 +1,16 @@
-from flask import render_template, request, redirect, url_for, session
-from flask import request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash
 from app.models import User, db, ActivityRegistry, SharedActivity
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from flask_login import login_user, logout_user, login_required, current_user
+import io, csv
 
-# from app import db  # Uncomment if using database
+from app.services.activity_service import (
+    get_shared_activities_with_user,
+    get_user_activities,
+    get_latest_activity_entry,
+    get_weekly_calories_summary
+)
+
 
 def register_routes(app):
     @app.route('/')
@@ -12,21 +18,39 @@ def register_routes(app):
     def index():
         return render_template('index.html')
 
+
     @app.route('/dashboard')
     @login_required
     def dashboard():
-        calories_burned = session.get('calories_burned')
-        selected_activity = session.get('selected_activity')
-        duration = session.get('duration')
+        week_start_str = request.args.get('week_start')
+        goal_str = request.args.get('goal')
+
+        # define start day
+        if week_start_str:
+            try:
+                start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+            except:
+                start = date.today() - timedelta(days=date.today().weekday())
+        else:
+            start = date.today() - timedelta(days=date.today().weekday())  # 本週週一
+
+        # goal value
+        goal = int(goal_str) if goal_str and goal_str.isdigit() else 300
+
+        latest = get_latest_activity_entry(current_user.id)
+        weekly = get_weekly_calories_summary(current_user.id, start, goal)
 
         return render_template(
             'dashboard.html',
             title="Dashboard",
             user=current_user,
-            calories=calories_burned,
-            activity=selected_activity,
-            duration=duration
+            calories=latest["calories"],
+            activity=latest["activity"],
+            duration=latest["duration"],
+            weekly=weekly,
+            timedelta=timedelta
         )
+
 
     @app.route('/challenges')
     def challenges():
@@ -39,58 +63,121 @@ def register_routes(app):
     @app.route('/calories', methods=['GET', 'POST'])
     @login_required
     def calories():
-        calories_burned = None
         if request.method == 'POST':
-            activity = request.form['activity'].lower()
-            duration = float(request.form['duration'])
-            weight = float(request.form['weight'])
+            # Check if the POST is csv_file or manual
+            if 'csv_files' in request.files:
+                # ---------- CSV Upload Logic ----------
+                uploaded_files = request.files.getlist("csv_files")
+                total_success, total_failed = 0, 0
 
-            met_values = {
-                "walking": 3.5,
-                "running": 8.3,
-                "cycling": 6.0,
-                "hiking": 6.0,
-                "swimming": 5.8,
-                "yoga": 2.5
-            }
+                for file in uploaded_files:
+                    if not file or not file.filename.endswith('.csv'):
+                        flash(f'Skipped invalid file: {file.filename}', 'error')
+                        continue
 
-            if activity in met_values:
-                met = met_values[activity]
-                calories_burned = round(duration * met * weight * 0.0175, 2)
+                    try:
+                        content = file.read().decode('utf-8')
+                        reader = csv.DictReader(io.StringIO(content))
 
-                # Save to session
-                session['calories_burned'] = calories_burned
-                session['selected_activity'] = activity.title()
-                session['duration'] = duration
+                        for row in reader:
+                            try:
+                                activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
+                                duration_minutes = float(row['duration_minutes'])
+                                activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
+                                weight = float(row['weight_kg']) if row.get('weight_kg') else 0
+                                calories_burned = float(row['calories_burned']) if row.get('calories_burned') else \
+                                    round(duration_minutes * weight * 0.0175 * 3.5, 2)
 
-                # Insert into ActivityRegistry
+                                new_entry = ActivityRegistry(
+                                    upload_user_id=current_user.id,
+                                    upload_time=datetime.now(),
+                                    activity_date=activity_date,
+                                    activity_type=row['activity_type'],
+                                    activity_length=activity_length,
+                                    calories_burned=calories_burned,
+                                    distance_m=float(row['distance_m']) if row.get('distance_m') else None,
+                                    weight_kg=weight,
+                                    average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
+                                    max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
+                                    start_lat=row.get('start_lat'),
+                                    end_lat=row.get('end_lat')
+                                )
+
+                                db.session.add(new_entry)
+                                total_success += 1
+                            except Exception as e:
+                                print(f"Row skipped: {e}")
+                                total_failed += 1
+
+                        db.session.commit()
+
+                    except Exception as e:
+                        print(f"Failed to process {file.filename}: {e}")
+                        total_failed += 1
+
+                flash(f"Uploaded {total_success} rows. Failed: {total_failed}", "info")
+                return redirect(url_for('calories'))
+
+            else:
                 try:
-                    # user_id = session.get('user_id', 1)  # use actual user ID if available
-                    user_id = current_user.id
-                    now = datetime.now()
+            # ---------- Manual Form Entry ----------
+                    # Required columns
+                    activity = request.form['activity'].lower()
+                    duration = float(request.form['duration'])
+                    weight = float(request.form['weight'])
+
+                    # factors
+                    met_values = {
+                        "walking": 3.5, "running": 8.3, "cycling": 6.0,
+                        "hiking": 6.0, "swimming": 5.8, "yoga": 2.5
+                    }
+
+                    met = met_values.get(activity, 3.5)  # fallback: walking
+                    calories_burned = round(duration * met * weight * 0.0175, 2)
                     activity_length = (datetime.min + timedelta(minutes=duration)).time()
 
+                    # Nullable columns
+                    distance_m = request.form.get('distance_m') or None
+                    average_speed_mps = request.form.get('average_speed_mps') or None
+                    max_speed_mps = request.form.get('max_speed_mps') or None
+                    start_lat = request.form.get('start_lat') or None
+                    end_lat = request.form.get('end_lat') or None
+
                     new_entry = ActivityRegistry(
-                        upload_user_id=user_id,
-                        upload_time=now,
-                        activity_date=now.date(),
+                        upload_user_id=current_user.id,
+                        upload_time=datetime.now(),
+                        activity_date=datetime.today().date(),
                         activity_type=activity,
                         activity_length=activity_length,
-                        calories_burned=calories_burned 
+                        calories_burned=calories_burned,
+                        weight_kg=weight,
+                        distance_m=float(distance_m) if distance_m else None,
+                        average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
+                        max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
+                        start_lat=start_lat,
+                        end_lat=end_lat
                     )
 
                     db.session.add(new_entry)
                     db.session.commit()
-                except Exception as e:
-                    print("Activity insert failed:", e)
 
-                return redirect(url_for('dashboard'))
+                    # Data showed on dashboard TODO: -> modify here
+                    session['calories_burned'] = calories_burned
+                    session['selected_activity'] = activity.title()
+                    session['duration'] = duration
+
+                    return redirect(url_for('dashboard'))
+
+                except Exception as e:
+                    flash(f"Failed to save entry: {e}", "error")
+                    return redirect(url_for('calories'))
 
         return render_template(
             'calories.html',
             title="Calorie Calculator",
-            calories=calories_burned,
-            # user={'username': 'Guest'}
+            calories=session.get('calories_burned'),
+            activity=session.get('selected_activity'),
+            duration=session.get('duration'),
             user=current_user
         )
     
@@ -131,47 +218,14 @@ def register_routes(app):
     @app.route('/visualise')
     @login_required
     def visualise():
-        records = ActivityRegistry.query.filter_by(upload_user_id=current_user.id).all()
-
-        activities = [
-            {
-                "activity_type": r.activity_type,
-                "activity_length": str(r.activity_length),
-                "activity_date": r.activity_date.strftime('%Y-%m-%d'),
-                "calories_burned": r.calories_burned  # ✅ This is needed!
-            }
-            for r in records
-        ]
-
+        activities = get_user_activities(current_user.id)
         return render_template("visualise.html", activities=activities)
-
+   
     # -------------Share data view--------------
     @app.route('/shared_with_me')
     @login_required
     def shared_with_me():
-        # Finds out data shared with current user
-        shares = SharedActivity.query.filter_by(user_shared_with=current_user.email).all()
-
-        shared_data = []
-        for share in shares:
-            # Findes out activities shared
-            activity = ActivityRegistry.query.filter_by(
-                upload_user_id=share.sharing_user,
-                upload_time=share.activity_upload_time
-            ).first()
-
-            # Finds out the email of whom shares the data
-            sharing_user = User.query.get(share.sharing_user)
-
-            if activity and sharing_user:
-                shared_data.append({
-                    "activity_type": activity.activity_type.title(),
-                    "activity_length": activity.activity_length,
-                    "activity_date": activity.activity_date.strftime('%Y-%m-%d'),
-                    "calories_burned": activity.calories_burned,
-                    "shared_by": sharing_user.email
-                })
-
+        shared_data = get_shared_activities_with_user(current_user.email)
         return render_template("shared_with_me.html", shared_data=shared_data)
 
     @app.route('/share', methods=['GET', 'POST'])
