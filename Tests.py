@@ -25,11 +25,11 @@ class UnitTestingHandler(unittest.TestCase):
             print(f"Error Message: {e}")
         return testValue
 
-class TestDBcreation():
+class DatabaseTestHandler():
     def __init__(self, handler):
         self.handler = handler
         
-    def test_user_addition(self):
+    def test_database_creation(self):
         testValue = True
         try:
             with self.handler.app.app_context():
@@ -40,10 +40,6 @@ class TestDBcreation():
             print("DB Setup Test failed")
             print(f"Error Message: {e}")
         return testValue
-
-class TestDBFeatures():
-    def __init__(self, handler):
-        self.handler = handler
         
     def test_db_addition(self, count): 
         testValue = True
@@ -64,6 +60,7 @@ class TestDBFeatures():
                 added_users = db.session.query(User).all()
                 if len(added_users) == len(self.handler.test_users):
                     print(f"Database Randomized Addition Test passed with {count} random users. ")
+                    self.handler.users_in_db = added_users
                 else:
                     print(f"Database Randomized Addition Test failed, database is missing {len(self.handler.users_to_add) - len(added_users)} users")
                     testValue = False
@@ -83,10 +80,23 @@ class TestDBFeatures():
                     testValue = False
             if testValue == True:
                 print("Password Hashing Testing passed")
+                
+    def test_user_ID(self):
+        testValue = True
+        counter = 1
+        for user in self.handler.users_in_db:
+            if user.id != counter:
+                testValue=False
+                print(f"User ID auto-increment testing failed at user_ID: {user.id}, expected: {counter}")
+            counter += 1
+        print("User ID auto-increment testing passed")
+        return testValue
             
 
 testing_handler = UnitTestingHandler()
 testing_handler.test_setup()
-TestDBcreation(testing_handler).test_user_addition()
-TestDBFeatures(testing_handler).test_db_addition(10)
-TestDBFeatures(testing_handler).test_password_hashing()
+database_test_handler = DatabaseTestHandler(testing_handler)
+database_test_handler.test_database_creation()
+database_test_handler.test_db_addition(100)
+database_test_handler.test_password_hashing()
+database_test_handler.test_user_ID()
