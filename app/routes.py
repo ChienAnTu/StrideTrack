@@ -44,52 +44,57 @@ def register_routes(app):
     def calories():
         if request.method == 'POST':
             # Check if the POST is csv_file or manual
-            if 'csv_file' in request.files:
+            if 'csv_files' in request.files:
                 # ---------- CSV Upload Logic ----------
-                file = request.files['csv_file']
-                if not file or not file.filename.endswith('.csv'):
-                    flash('Invalid file format. Please upload a .csv file.', 'error')
-                    return redirect(url_for('calories'))
+                uploaded_files = request.files.getlist("csv_files")
+                total_success, total_failed = 0, 0
 
-                # stream = TextIOWrapper(file.stream)
-                # reader = csv.DictReader(stream)
-                content = file.read().decode('utf-8')
-                reader = csv.DictReader(io.StringIO(content))
+                for file in uploaded_files:
+                    if not file or not file.filename.endswith('.csv'):
+                        flash(f'Skipped invalid file: {file.filename}', 'error')
+                        continue
 
-                successful, failed = 0, 0
-                for row in reader:
                     try:
-                        activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
-                        duration_minutes = float(row['duration_minutes'])
-                        activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
+                        content = file.read().decode('utf-8')
+                        reader = csv.DictReader(io.StringIO(content))
 
-                        weight = float(row['weight_kg']) if row.get('weight_kg') else 0
-                        calories_burned = float(row['calories_burned']) if row.get('calories_burned') else \
-                            round(duration_minutes * weight * 0.0175 * 3.5, 2)
+                        for row in reader:
+                            try:
+                                activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
+                                duration_minutes = float(row['duration_minutes'])
+                                activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
+                                weight = float(row['weight_kg']) if row.get('weight_kg') else 0
+                                calories_burned = float(row['calories_burned']) if row.get('calories_burned') else \
+                                    round(duration_minutes * weight * 0.0175 * 3.5, 2)
 
-                        new_entry = ActivityRegistry(
-                            upload_user_id=current_user.id,
-                            upload_time=datetime.now(),
-                            activity_date=activity_date,
-                            activity_type=row['activity_type'],
-                            activity_length=activity_length,
-                            calories_burned=calories_burned,
-                            distance_m=float(row['distance_m']) if row.get('distance_m') else None,
-                            weight_kg=weight,
-                            average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
-                            max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
-                            start_lat=row.get('start_lat'),
-                            end_lat=row.get('end_lat')
-                        )
+                                new_entry = ActivityRegistry(
+                                    upload_user_id=current_user.id,
+                                    upload_time=datetime.now(),
+                                    activity_date=activity_date,
+                                    activity_type=row['activity_type'],
+                                    activity_length=activity_length,
+                                    calories_burned=calories_burned,
+                                    distance_m=float(row['distance_m']) if row.get('distance_m') else None,
+                                    weight_kg=weight,
+                                    average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
+                                    max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
+                                    start_lat=row.get('start_lat'),
+                                    end_lat=row.get('end_lat')
+                                )
 
-                        db.session.add(new_entry)
-                        successful += 1
+                                db.session.add(new_entry)
+                                total_success += 1
+                            except Exception as e:
+                                print(f"⚠️ Row skipped: {e}")
+                                total_failed += 1
+
+                        db.session.commit()
+
                     except Exception as e:
-                        print(f"⚠️ Row skipped: {e}")
-                        failed += 1
+                        print(f"❌ Failed to process {file.filename}: {e}")
+                        total_failed += 1
 
-                db.session.commit()
-                flash(f"✅ {successful} entries uploaded. ❌ {failed} failed.", "info")
+                flash(f"✅ Uploaded {total_success} rows. ❌ Failed: {total_failed}", "info")
                 return redirect(url_for('calories'))
 
             else:
