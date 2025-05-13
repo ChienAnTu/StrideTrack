@@ -41,9 +41,14 @@
                   Challenges
                 </a>
                 
-                <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
+                <a href="{{ url_for('shared_with_me') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/shared_with_me' %}bg-gray-900 text-orange-500{% endif %}">Shared With Me</a>
+
+                <!-- <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
                   Share Data
-                </a>
+                </a> -->
+                <a href="{{ url_for('share') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/share' %}bg-gray-900 text-orange-500{% endif %}">Share Data</a>
+
+
                 <a href="{{ url_for('calories') }}"
                   class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/calories' %}bg-gray-900 text-orange-500{% endif %}">
                   Upload Data
