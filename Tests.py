@@ -1,6 +1,6 @@
 from app import create_app, db
 from app.models import User
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import unittest
 from random_username.generate import generate_username
@@ -9,16 +9,19 @@ from app.config import TestingConfig
 def addUser(name, email, password_hash):
     to_add = User(username=name, email = email, password_hash = password_hash)
     db.session.add(to_add)
+    db.session.commit()
 
 class UnitTestingHandler(unittest.TestCase):
     def test_setup(self):
         testValue = True
         try:
             self.app = create_app(TestingConfig)
-            print("App Setup Test Suceeded.")
+            with self.app.app_context():
+                db.drop_all() # Wipe the testing database clean for new additions.
+            print("App Setup Test passed")
         except Exception as e:
             testValue = False
-            print("App Setup Test Failed")
+            print("App Setup Test failed")
             print(f"Error Message: {e}")
         return testValue
 
@@ -31,41 +34,59 @@ class TestDBcreation():
         try:
             with self.handler.app.app_context():
                 db.create_all()
-                print("DB Setup Test Suceeded")
+                print("DB Setup Test passed")
         except Exception as e:
             testValue = False
-            print("DB Setup Test Failed")
+            print("DB Setup Test failed")
             print(f"Error Message: {e}")
         return testValue
 
-class TestDBAddition():
+class TestDBFeatures():
     def __init__(self, handler):
         self.handler = handler
         
     def test_db_addition(self, count): 
         testValue = True
-        self.handler.users_to_add = generate_username(count)
+        self.handler.test_users = generate_username(count)
         self.handler.user_password_dictionary = {}
+        self.handler.user_passwordHash_dictionary = {}
         with self.handler.app.app_context():
             try:
-                for user in self.handler.users_to_add:
+                for user in self.handler.test_users:
                     password = list(user)
                     random.shuffle(password)
                     password = "".join(password) # Shuffles the username randomly to generate a password.
-                    addUser(user, user + "@mail.com", password_hash=generate_password_hash(password))
+                    password_hash = generate_password_hash(password)
+                    addUser(user, user + "@mail.com", password_hash=password_hash)
                     self.handler.user_password_dictionary[user] = password
+                    self.handler.user_passwordHash_dictionary[user] = password_hash
 
                 added_users = db.session.query(User).all()
-                if len(added_users) == len(self.handler.users_to_add):
-                    print(f"Database Randomized Addition Test Succeeded with {count} random users. ")
+                if len(added_users) == len(self.handler.test_users):
+                    print(f"Database Randomized Addition Test passed with {count} random users. ")
                 else:
-                    print(f"Database Randomized Addition Test Failed, database is missing {len(self.handler.users_to_add) - len(added_users)} users")
+                    print(f"Database Randomized Addition Test failed, database is missing {len(self.handler.users_to_add) - len(added_users)} users")
+                    testValue = False
             except Exception as e:
-                print("DB Randomized Addition Test Failed")
+                testValue = False
+                print("DB Randomized Addition Test failed")
                 print(f"Error Message: {e}")
         return testValue
+    
+    def test_password_hashing(self):
+        testValue = True
+        with self.handler.app.app_context():
+            for user in self.handler.test_users:
+                if (check_password_hash(self.handler.user_passwordHash_dictionary[user], self.handler.user_password_dictionary[user])
+                    ) == False:
+                    print(f"Hash testing for user {user} failed! Hashed password is not recognized")
+                    testValue = False
+            if testValue == True:
+                print("Password Hashing Testing passed")
+            
 
 testing_handler = UnitTestingHandler()
 testing_handler.test_setup()
 TestDBcreation(testing_handler).test_user_addition()
-TestDBAddition(testing_handler).test_db_addition(10)
+TestDBFeatures(testing_handler).test_db_addition(10)
+TestDBFeatures(testing_handler).test_password_hashing()
