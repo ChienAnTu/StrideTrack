@@ -31,50 +31,9 @@
 <!-- Sidebar + Main Content -->
 <div class="flex pt-16">
   <!-- Sidebar -->
-  <aside id="default-sidebar"
-    class="fixed top-16 left-0 z-10 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-white border-r border-gray-200">
-    <div class="h-full p-4 overflow-y-auto">
-      <ul class="space-y-2 font-medium">
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="ms-3">Overview</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Workout</span>
-          </a>
-        </li>
-        <li>
-          <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Goals</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('visualise') }}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Progress</span>
-          </a>
-        </li>
-        <!--  -->
-        <li>
-          <a href="{{ url_for('share') }}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Share</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('shared_with_me') }}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Shared With Me</span>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('challenges') }}" class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group">
-            <span class="flex-1 ms-3 whitespace-nowrap">Challenges</span>
-          </a>
-        </li>
-        
-      </ul>
-    </div>
-  </aside>
+  
+  {% include "_sidebar.html" %}
+
 
   <!-- Main content -->
   <main class="sm:ml-64 w-full p-4 mt-4">
