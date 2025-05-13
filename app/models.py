@@ -23,12 +23,21 @@ class User(db.Model, UserMixin):
 
 class ActivityRegistry(db.Model):
     __tablename__ = "ActivityRegistry"
-    upload_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False, primary_key=True, name="upload_user_id")
-    upload_time: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, name="Sr_no")
+    upload_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False, name="upload_user_id")
+    upload_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(nullable=False)
     activity_length: Mapped[time] = mapped_column(Time, nullable=False)
     calories_burned: Mapped[float] = mapped_column(nullable=False, default=0.0)
+
+    distance_m: Mapped[float] = mapped_column(nullable=True)
+    weight_kg: Mapped[float] = mapped_column(nullable=True)
+    average_speed_mps: Mapped[float] = mapped_column(nullable=True)
+    max_speed_mps: Mapped[float] = mapped_column(nullable=True)
+    start_lat: Mapped[str] = mapped_column(nullable=True)  # GPS at the start
+    end_lat: Mapped[str] = mapped_column(nullable=True)    # GPS at the end
+
 
 class SharedActivity(db.Model):
     __tablename__ = "SharedActivity"

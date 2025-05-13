@@ -3,6 +3,9 @@ from flask import request, redirect, url_for, session, flash
 from app.models import User, db, ActivityRegistry, SharedActivity
 from datetime import datetime, timedelta
 from flask_login import login_user, logout_user, login_required, current_user
+from io import TextIOWrapper
+import io
+import csv
 
 # from app import db  # Uncomment if using database
 
@@ -39,58 +42,116 @@ def register_routes(app):
     @app.route('/calories', methods=['GET', 'POST'])
     @login_required
     def calories():
-        calories_burned = None
         if request.method == 'POST':
-            activity = request.form['activity'].lower()
-            duration = float(request.form['duration'])
-            weight = float(request.form['weight'])
+            # Check if the POST is csv_file or manual
+            if 'csv_file' in request.files:
+                # ---------- CSV Upload Logic ----------
+                file = request.files['csv_file']
+                if not file or not file.filename.endswith('.csv'):
+                    flash('Invalid file format. Please upload a .csv file.', 'error')
+                    return redirect(url_for('calories'))
 
-            met_values = {
-                "walking": 3.5,
-                "running": 8.3,
-                "cycling": 6.0,
-                "hiking": 6.0,
-                "swimming": 5.8,
-                "yoga": 2.5
-            }
+                # stream = TextIOWrapper(file.stream)
+                # reader = csv.DictReader(stream)
+                content = file.read().decode('utf-8')
+                reader = csv.DictReader(io.StringIO(content))
 
-            if activity in met_values:
-                met = met_values[activity]
-                calories_burned = round(duration * met * weight * 0.0175, 2)
+                successful, failed = 0, 0
+                for row in reader:
+                    try:
+                        activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
+                        duration_minutes = float(row['duration_minutes'])
+                        activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
 
-                # Save to session
-                session['calories_burned'] = calories_burned
-                session['selected_activity'] = activity.title()
-                session['duration'] = duration
+                        weight = float(row['weight_kg']) if row.get('weight_kg') else 0
+                        calories_burned = float(row['calories_burned']) if row.get('calories_burned') else \
+                            round(duration_minutes * weight * 0.0175 * 3.5, 2)
 
-                # Insert into ActivityRegistry
+                        new_entry = ActivityRegistry(
+                            upload_user_id=current_user.id,
+                            upload_time=datetime.now(),
+                            activity_date=activity_date,
+                            activity_type=row['activity_type'],
+                            activity_length=activity_length,
+                            calories_burned=calories_burned,
+                            distance_m=float(row['distance_m']) if row.get('distance_m') else None,
+                            weight_kg=weight,
+                            average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
+                            max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
+                            start_lat=row.get('start_lat'),
+                            end_lat=row.get('end_lat')
+                        )
+
+                        db.session.add(new_entry)
+                        successful += 1
+                    except Exception as e:
+                        print(f"⚠️ Row skipped: {e}")
+                        failed += 1
+
+                db.session.commit()
+                flash(f"✅ {successful} entries uploaded. ❌ {failed} failed.", "info")
+                return redirect(url_for('calories'))
+
+            else:
                 try:
-                    # user_id = session.get('user_id', 1)  # use actual user ID if available
-                    user_id = current_user.id
-                    now = datetime.now()
+            # ---------- Manual Form Entry ----------
+                    # Required columns
+                    activity = request.form['activity'].lower()
+                    duration = float(request.form['duration'])
+                    weight = float(request.form['weight'])
+
+                    # factors
+                    met_values = {
+                        "walking": 3.5, "running": 8.3, "cycling": 6.0,
+                        "hiking": 6.0, "swimming": 5.8, "yoga": 2.5
+                    }
+
+                    met = met_values.get(activity, 3.5)  # fallback: walking
+                    calories_burned = round(duration * met * weight * 0.0175, 2)
                     activity_length = (datetime.min + timedelta(minutes=duration)).time()
 
+                    # Nullable columns
+                    distance_m = request.form.get('distance_m') or None
+                    average_speed_mps = request.form.get('average_speed_mps') or None
+                    max_speed_mps = request.form.get('max_speed_mps') or None
+                    start_lat = request.form.get('start_lat') or None
+                    end_lat = request.form.get('end_lat') or None
+
                     new_entry = ActivityRegistry(
-                        upload_user_id=user_id,
-                        upload_time=now,
-                        activity_date=now.date(),
+                        upload_user_id=current_user.id,
+                        upload_time=datetime.now(),
+                        activity_date=datetime.today().date(),
                         activity_type=activity,
                         activity_length=activity_length,
-                        calories_burned=calories_burned 
+                        calories_burned=calories_burned,
+                        weight_kg=weight,
+                        distance_m=float(distance_m) if distance_m else None,
+                        average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
+                        max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
+                        start_lat=start_lat,
+                        end_lat=end_lat
                     )
 
                     db.session.add(new_entry)
                     db.session.commit()
-                except Exception as e:
-                    print("Activity insert failed:", e)
 
-                return redirect(url_for('dashboard'))
+                    # Data showed on dashboard TODO: -> modify here
+                    session['calories_burned'] = calories_burned
+                    session['selected_activity'] = activity.title()
+                    session['duration'] = duration
+
+                    return redirect(url_for('dashboard'))
+
+                except Exception as e:
+                    flash(f"❌ Failed to save entry: {e}", "error")
+                    return redirect(url_for('calories'))
 
         return render_template(
             'calories.html',
             title="Calorie Calculator",
-            calories=calories_burned,
-            # user={'username': 'Guest'}
+            calories=session.get('calories_burned'),
+            activity=session.get('selected_activity'),
+            duration=session.get('duration'),
             user=current_user
         )
     
