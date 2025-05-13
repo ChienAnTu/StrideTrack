@@ -55,7 +55,10 @@
         <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="windanBridge" data-activity="cycling">
           <h3 class="font-medium text-lg text-gray-900">Windan Bridge</h3>
         </div>
-
+                
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="beattyPark" data-activity="swimming">
+          <h3 class="font-medium text-lg text-gray-900">Beatty Park</h3>
+        </div>
       </div>
 
       <!-- Trail Details (Dynamic) -->
@@ -154,7 +157,7 @@ document.getElementById('activity-select').addEventListener('change', function (
       elevation: "0 m",
       difficulty: "Easy",
       duration: "1 hour",
-      description: "Anyone can join and hire a free mat from the UWA Guild Student Centre 🧘🏼‍♀️📅 Wednesdays⏰ 12:30pm - 1:30pm."
+      description: "Anyone can join and hire a free mat from the UWA Guild Student Centre. Wednesdays 12:30pm - 1:30pm."
     },
     bellsRapid: {
       name: "Bells Rapid",
@@ -196,7 +199,13 @@ document.getElementById('activity-select').addEventListener('change', function (
       duration: "2 hours",
       description: "A challenging ride along the Windan Bridge."
     },
-  };
+    beattyPark: {
+      name: "Beatty Park",
+      gpx: "static/trails/beattyPark.gpx",
+      distance: "0 km",
+      description: "Beatty Park Leisure Centre has been the place to swim since 1962. Get in touch with the team for lap lane availability or a pool party."
+  }
+};
 
   // Current active trail layer
   let activeTrailLayer = null;
