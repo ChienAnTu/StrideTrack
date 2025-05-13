@@ -1,13 +1,14 @@
 from flask import render_template, request, redirect, url_for, session, flash
 from app.models import User, db, ActivityRegistry, SharedActivity
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from flask_login import login_user, logout_user, login_required, current_user
 import io, csv
 
 from app.services.activity_service import (
     get_shared_activities_with_user,
     get_user_activities,
-    get_latest_activity_entry
+    get_latest_activity_entry,
+    get_weekly_calories_summary
 )
 
 
@@ -17,10 +18,27 @@ def register_routes(app):
     def index():
         return render_template('index.html')
 
+
     @app.route('/dashboard')
     @login_required
     def dashboard():
+        week_start_str = request.args.get('week_start')
+        goal_str = request.args.get('goal')
+
+        # define start day
+        if week_start_str:
+            try:
+                start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+            except:
+                start = date.today() - timedelta(days=date.today().weekday())
+        else:
+            start = date.today() - timedelta(days=date.today().weekday())  # 本週週一
+
+        # goal value
+        goal = int(goal_str) if goal_str and goal_str.isdigit() else 300
+
         latest = get_latest_activity_entry(current_user.id)
+        weekly = get_weekly_calories_summary(current_user.id, start, goal)
 
         return render_template(
             'dashboard.html',
@@ -28,8 +46,11 @@ def register_routes(app):
             user=current_user,
             calories=latest["calories"],
             activity=latest["activity"],
-            duration=latest["duration"]
+            duration=latest["duration"],
+            weekly=weekly,
+            timedelta=timedelta
         )
+
 
     @app.route('/challenges')
     def challenges():
