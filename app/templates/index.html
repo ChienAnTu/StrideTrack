@@ -283,21 +283,21 @@ class="hidden bg-black/50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 
     <div id="signup-section" class="p-4 md:p-5">
       <form class="space-y-4" action="{{ url_for('register') }}" method="POST" onsubmit="return fillUsername()">
         <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label
-              for="username"
-              class="block mb-2 text-sm font-medium text-gray-900 dark:text-black"
-              >Username</label
-            >
+          <div class="col-span-2">
+            <label for="username" class="block mb-2 text-sm font-medium text-gray-900">
+              Username
+            </label>
             <input
               type="text"
               name="username"
               id="username"
-              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-white-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-black"
               placeholder="Username"
               required
+              class="block w-full p-2.5 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
+          
+          
         </div>
         <div>
           <label
