@@ -1,6 +1,5 @@
 from flask import Flask, g, session
 # Import backend modules below
-from app.config import Config
 from app.database import db, migrate
 from app.models import User
 from flask_sqlalchemy import SQLAlchemy
@@ -8,9 +7,9 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 # from sqlalchemy.orm import DeclarativeBase
 
-def create_app():
+def create_app(config):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config)
 
     # Initialize Flask extensions
     db.init_app(app)

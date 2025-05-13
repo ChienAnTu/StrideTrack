@@ -6,3 +6,6 @@ default_db_loc = 'sqlite:///' + os.path.join(basedir, 'app.db')
 class Config:
     SQLALCHEMY_DATABASE_URI = default_db_loc
     SECRET_KEY = os.urandom(10)
+    
+class TestingConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
