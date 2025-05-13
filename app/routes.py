@@ -1,11 +1,13 @@
-from flask import render_template, request, redirect, url_for, session
-from flask import request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash
 from app.models import User, db, ActivityRegistry, SharedActivity
 from datetime import datetime, timedelta
 from flask_login import login_user, logout_user, login_required, current_user
-# from io import TextIOWrapper
-import io
-import csv
+import io, csv
+
+from app.services.activity_service import (
+    get_shared_activities_with_user,
+    get_user_activities
+)
 
 
 def register_routes(app):
@@ -84,16 +86,16 @@ def register_routes(app):
                                 db.session.add(new_entry)
                                 total_success += 1
                             except Exception as e:
-                                print(f"⚠️ Row skipped: {e}")
+                                print(f"Row skipped: {e}")
                                 total_failed += 1
 
                         db.session.commit()
 
                     except Exception as e:
-                        print(f"❌ Failed to process {file.filename}: {e}")
+                        print(f"Failed to process {file.filename}: {e}")
                         total_failed += 1
 
-                flash(f"✅ Uploaded {total_success} rows. ❌ Failed: {total_failed}", "info")
+                flash(f"Uploaded {total_success} rows. Failed: {total_failed}", "info")
                 return redirect(url_for('calories'))
 
             else:
@@ -147,7 +149,7 @@ def register_routes(app):
                     return redirect(url_for('dashboard'))
 
                 except Exception as e:
-                    flash(f"❌ Failed to save entry: {e}", "error")
+                    flash(f"Failed to save entry: {e}", "error")
                     return redirect(url_for('calories'))
 
         return render_template(
@@ -196,47 +198,14 @@ def register_routes(app):
     @app.route('/visualise')
     @login_required
     def visualise():
-        records = ActivityRegistry.query.filter_by(upload_user_id=current_user.id).all()
-
-        activities = [
-            {
-                "activity_type": r.activity_type,
-                "activity_length": str(r.activity_length),
-                "activity_date": r.activity_date.strftime('%Y-%m-%d'),
-                "calories_burned": r.calories_burned  # ✅ This is needed!
-            }
-            for r in records
-        ]
-
+        activities = get_user_activities(current_user.id)
         return render_template("visualise.html", activities=activities)
-
+   
     # -------------Share data view--------------
     @app.route('/shared_with_me')
     @login_required
     def shared_with_me():
-        # Finds out data shared with current user
-        shares = SharedActivity.query.filter_by(user_shared_with=current_user.email).all()
-
-        shared_data = []
-        for share in shares:
-            # Findes out activities shared
-            activity = ActivityRegistry.query.filter_by(
-                upload_user_id=share.sharing_user,
-                upload_time=share.activity_upload_time
-            ).first()
-
-            # Finds out the email of whom shares the data
-            sharing_user = User.query.get(share.sharing_user)
-
-            if activity and sharing_user:
-                shared_data.append({
-                    "activity_type": activity.activity_type.title(),
-                    "activity_length": activity.activity_length,
-                    "activity_date": activity.activity_date.strftime('%Y-%m-%d'),
-                    "calories_burned": activity.calories_burned,
-                    "shared_by": sharing_user.email
-                })
-
+        shared_data = get_shared_activities_with_user(current_user.email)
         return render_template("shared_with_me.html", shared_data=shared_data)
 
     @app.route('/share', methods=['GET', 'POST'])
