@@ -36,23 +36,7 @@
             <div class="flex items-center space-x-6">
               {% if current_user.is_authenticated %}
                 <a href="{{ url_for('dashboard') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/dashboard' %}bg-gray-900 text-orange-500{% endif %}">Dashboard</a>
-                <a href="{{ url_for('challenges') }}"
-                   class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/challenges' %}{% endif %}">
-                  Challenges
-                </a>
-                
-                <a href="{{ url_for('shared_with_me') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/shared_with_me' %}bg-gray-900 text-orange-500{% endif %}">Shared With Me</a>
 
-                <!-- <a href="#" class="text-sm font-medium text-gray-400 cursor-not-allowed px-3 py-2 rounded-md">
-                  Share Data
-                </a> -->
-                <a href="{{ url_for('share') }}" class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/share' %}bg-gray-900 text-orange-500{% endif %}">Share Data</a>
-
-
-                <a href="{{ url_for('calories') }}"
-                  class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/calories' %}bg-gray-900 text-orange-500{% endif %}">
-                  Upload Data
-                </a>
                 
               <div class="flex items-center space-x-3 border-l pl-4 border-gray-300">
                 <span class="text-sm font-medium text-gray-700">👤 {{ current_user.username }}</span>
