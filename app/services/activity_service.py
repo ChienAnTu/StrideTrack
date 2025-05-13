@@ -63,3 +63,27 @@ def get_user_activities(user_id: int):
         }
         for r in records
     ]
+
+def get_latest_activity_entry(user_id: int):
+    record = (
+        ActivityRegistry.query
+        .filter_by(upload_user_id=user_id)
+        .order_by(ActivityRegistry.activity_date.desc(), ActivityRegistry.upload_time.desc())
+        .first()
+    )
+
+    if not record:
+        return {
+            "activity": "None selected",
+            "calories": 0,
+            "duration": 0
+        }
+
+    # Parse duration from time object to minutes
+    duration_minutes = record.activity_length.hour * 60 + record.activity_length.minute + record.activity_length.second / 60
+
+    return {
+        "activity": record.activity_type.title(),
+        "calories": round(record.calories_burned, 2),
+        "duration": round(duration_minutes)
+    }

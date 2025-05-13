@@ -6,7 +6,8 @@ import io, csv
 
 from app.services.activity_service import (
     get_shared_activities_with_user,
-    get_user_activities
+    get_user_activities,
+    get_latest_activity_entry
 )
 
 
@@ -19,17 +20,15 @@ def register_routes(app):
     @app.route('/dashboard')
     @login_required
     def dashboard():
-        calories_burned = session.get('calories_burned')
-        selected_activity = session.get('selected_activity')
-        duration = session.get('duration')
+        latest = get_latest_activity_entry(current_user.id)
 
         return render_template(
             'dashboard.html',
             title="Dashboard",
             user=current_user,
-            calories=calories_burned,
-            activity=selected_activity,
-            duration=duration
+            calories=latest["calories"],
+            activity=latest["activity"],
+            duration=latest["duration"]
         )
 
     @app.route('/challenges')
