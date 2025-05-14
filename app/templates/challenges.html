@@ -7,26 +7,57 @@
 
 <div class="bg-white">
   <div class="mx-auto grid max-w-2xl grid-cols-1 items-center gap-x-8 gap-y-16 px-4 py-24 sm:px-6 sm:py-32 lg:max-w-7xl lg:grid-cols-2 lg:px-8">
-    <!-- Modified Sidebar -->
-    <div class="space-y-8">
-      <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Trail Explorer</h2>
-      <p class="mt-4 text-gray-500">Select a trail to view its route and details.</p>
-
+    <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Trail Explorer</h2>
+    <p class="mt-4 text-gray-500">Select a trail to view its route and details.</p>
+    <div class="space-y-8 min-h-[600px]">
+      <div>
+      <label for="activity-select" class="block text-sm font-medium text-gray-700">Select Activity</label>
+      <select id="activity-select" name="activity" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+        <option value="all">All Activities</option>
+        <option value="hiking">Hiking</option>
+        <option value="cycling">Cycling</option>
+        <option value="walking">Walking</option>
+        <option value="swimming">Swimming</option>
+        <option value="yoga">Yoga</option>
+        <option value="running">Running</option>
+      </select>
+    </div>    
       <!-- Trail Selection Cards -->
-      <div class="space-y-4">
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="greenMount">
+      <div class="max-h-[400px] overflow-y-scroll space-y-4 pr-2">
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="greenMount" data-activity="hiking">
           <h3 class="font-medium text-lg text-gray-900">Green Mountain Trail</h3>
-          <p class="text-sm text-gray-500">Distance: 5.2km | Difficulty: Moderate</p>
         </div>
         
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="kingsPark">
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="kingsPark" data-activity="running">
           <h3 class="font-medium text-lg text-gray-900">Kings Park</h3>
-          <p class="text-sm text-gray-500">Distance: 8.1km | Difficulty: Hard</p>
         </div>
         
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="hydePark">
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="hydePark" data-activity="walking">
           <h3 class="font-medium text-lg text-gray-900">Hyde Park</h3>
-          <p class="text-sm text-gray-500">Distance: 3.7km | Difficulty: Easy</p>
+        </div>
+
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="jamesOval" data-activity="yoga">
+          <h3 class="font-medium text-lg text-gray-900">James Oval</h3>
+        </div>
+        
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="bellsRapid" data-activity="hiking">
+          <h3 class="font-medium text-lg text-gray-900">Bells Rapid</h3>
+        </div>
+        
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="booyeembarraPark" data-activity="walking">
+          <h3 class="font-medium text-lg text-gray-900">Booyeembara Park</h3>
+        </div>
+        
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="cottesloeBeach" data-activity="cycling">
+          <h3 class="font-medium text-lg text-gray-900">Cottesloe Beach</h3>
+        </div>
+        
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="windanBridge" data-activity="cycling">
+          <h3 class="font-medium text-lg text-gray-900">Windan Bridge</h3>
+        </div>
+                
+        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="beattyPark" data-activity="swimming">
+          <h3 class="font-medium text-lg text-gray-900">Beatty Park</h3>
         </div>
       </div>
 
@@ -63,6 +94,23 @@
 </div>
 
 <script>
+document.getElementById('activity-select').addEventListener('change', function () {
+  const selectedActivity = this.value;
+  let visibleTrailFound = false;
+
+  document.querySelectorAll('.trail-card').forEach(card => {
+    const cardActivity = card.getAttribute('data-activity');
+    const isVisible = selectedActivity === 'all' || cardActivity === selectedActivity;
+    card.style.display = isVisible ? 'block' : 'none';
+    if (isVisible) visibleTrailFound = true;
+  });
+
+  // Hide trail details if the current selection doesn't match any visible trails
+  if (!visibleTrailFound) {
+    document.getElementById('trail-details').classList.add('hidden');
+  }
+});
+
   // Initialize map with default view
   const map = L.map('map').setView([-31.90988, 116.062805], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -92,7 +140,7 @@
       description: "Challenging ridge walk with steep sections and exposed areas."
     },
     hydePark: {
-      name: "hydePark",
+      name: "Hyde Park",
       gpx: "static/trails/hydePark.gpx",
       color: "#F59E0B",
       distance: "3.7 km",
@@ -100,8 +148,64 @@
       difficulty: "Easy",
       duration: "1-1.5 hours",
       description: "Gentle loop through wildflower meadows, perfect for families."
-    }
-  };
+    },
+    jamesOval: { 
+      name: "Free Yoga at James Oval",
+      gpx: "static/trails/jamesOval.gpx",
+      color: "#10B981",
+      distance: "0 km",
+      elevation: "0 m",
+      difficulty: "Easy",
+      duration: "1 hour",
+      description: "Anyone can join and hire a free mat from the UWA Guild Student Centre. Wednesdays 12:30pm - 1:30pm."
+    },
+    bellsRapid: {
+      name: "Bells Rapid",
+      gpx: "static/trails/bellsRapid.gpx",
+      color: "#10B981",
+      distance: "3.77 km",
+      elevation: "108 m",
+      difficulty: "Hard",
+      duration: "2 hours",
+      description: "A challenging hike through the Bells Rapid area."
+    },
+    booyeembarraPark: {
+      name: "Booyeembara Park",
+      gpx: "static/trails/booyeembaraPark.gpx",
+      color: "#F59E0B",
+      distance: "1.09 km",
+      elevation: "5 m",
+      difficulty: "Easy",
+      duration: "30 mins",
+      desription: "A walk through the Booyeembara Park."
+    },
+    cottesloeBeach: {
+      name: "Cottesloe Beach",
+      gpx: "static/trails/cottesloeBeach.gpx",
+      color: "#3B82F6",
+      distance: "14.41 km",
+      elevation: "153 m",
+      difficulty: "Hard",
+      duration: "2 hours",
+      description: "A challenging ride along the Cottesloe Beach."
+    },
+    windanBridge: {
+      name: "Windan Bridge",
+      gpx: "static/trails/windanBridge.gpx",
+      color: "#3B82F6",
+      distance: "5.19 km",
+      elevation: "34 m",
+      difficulty: "Moderate",
+      duration: "2 hours",
+      description: "A challenging ride along the Windan Bridge."
+    },
+    beattyPark: {
+      name: "Beatty Park",
+      gpx: "static/trails/beattyPark.gpx",
+      distance: "0 km",
+      description: "Beatty Park Leisure Centre has been the place to swim since 1962. Get in touch with the team for lap lane availability or a pool party."
+  }
+};
 
   // Current active trail layer
   let activeTrailLayer = null;
