@@ -66,16 +66,20 @@ class UnitTestingHandler(unittest.TestCase):
             print("App Setup Test failed")
             print(f"Error Message: {e}")
         return testValue
-
+        
+class SeleniumTestHandler():
+    def __init__(self, parent):
+        self.parent = parent
+        parent.server_thread = multiprocessing.Process(target=create_test_server)
+        parent.driver = webdriver.Chrome()
+    
     def setup_test_server(self):
-        self.server_thread = multiprocessing.Process(target=create_test_server)
-        self.server_thread.start()
-        self.driver = webdriver.Chrome()
-        self.driver.get(LOCALHOST)
+        self.parent.server_thread.start()
+        self.parent.driver.get(LOCALHOST)
 
 class DatabaseTestHandler():
-    def __init__(self, handler):
-        self.handler = handler
+    def __init__(self, parent):
+        self.handler = parent
         
     def test_database_creation(self):
         testValue = True
@@ -144,8 +148,10 @@ if __name__ == '__main__':
     testing_handler = UnitTestingHandler()
     testing_handler.test_setup()
     database_test_handler = DatabaseTestHandler(testing_handler)
+    selenium_test_handler = SeleniumTestHandler(testing_handler)
     database_test_handler.test_database_creation()
     database_test_handler.test_db_user_addition(20)
     database_test_handler.test_password_hashing()
     database_test_handler.test_user_ID()
-    testing_handler.setup_test_server()
+    selenium_test_handler.setup_test_server()
+    
