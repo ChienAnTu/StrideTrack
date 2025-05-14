@@ -5,8 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import unittest
 import multiprocessing
-import threading
+import time as t_lib
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from random_username.generate import generate_username
 from app.config import TestingConfig
 from app.routes import calculate_calories
@@ -76,7 +77,66 @@ class SeleniumTestHandler():
     def setup_test_server(self):
         self.parent.server_thread.start()
         self.parent.driver.get(LOCALHOST)
+    
+    def tearDown(self):
+        self.parent.driver.quit()
+        self.parent.app_context.pop()
 
+    def test_login_functionality(self):
+        """Test the login functionality."""
+        self.parent.driver.get(LOCALHOST)
+
+        # Locate login elements
+        login_email = self.parent.driver.find_element(By.ID, "login-email")
+        login_password = self.parent.driver.find_element(By.ID, "login-password")
+        login_button = self.parent.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+
+        # Perform login
+        login_email.send_keys("testuser@mail.com")
+        login_password.send_keys("password123")
+        login_button.click()
+
+        # Wait for login to complete
+        t_lib.sleep(2)
+
+        # Verify login success
+        assert "Dashboard" in self.parent.driver.page_source
+
+    def test_logout_functionality(self):
+        """Test the logout functionality."""
+        self.parent.driver.get(f"{LOCALHOST}/dashboard")
+
+        # Locate and click the logout button
+        logout_button = self.parent.driver.find_element(By.LINK_TEXT, "Logout")
+        logout_button.click()
+
+        # Wait for logout to complete
+        t_lib.sleep(2)
+
+        # Verify logout success
+        assert "Log in" in self.parent.driver.page_source
+
+    def test_signup_functionality(self):
+        """Test the signup functionality."""
+        self.parent.driver.get(LOCALHOST)
+
+        self.parent.driver.find_element(By.ID, "login").click()
+        self.parent.driver.find_element(By.ID, "create-account").click()
+        # Fill out the signup form
+        username_input = self.parent.driver.find_element(By.ID, "username")
+        email_input = self.parent.driver.find_element(By.ID, "email")
+        password_input = self.parent.driver.find_element(By.ID, "password")
+        confirm_password_input = self.parent.driver.find_element(By.ID, "confirm-password")
+        terms_checkbox = self.parent.driver.find_element(By.ID, "terms")
+        signup_submit_button = self.parent.driver.find_element(By.ID, "create-account-button")
+        
+        username_input.send_keys("testUser")
+        email_input.send_keys("testuser@mail.com")
+        password_input.send_keys("password123")
+        confirm_password_input.send_keys("password123")
+        terms_checkbox.click()
+        signup_submit_button.click()
+        
 class DatabaseTestHandler():
     def __init__(self, parent):
         self.handler = parent
@@ -154,4 +214,5 @@ if __name__ == '__main__':
     database_test_handler.test_password_hashing()
     database_test_handler.test_user_ID()
     selenium_test_handler.setup_test_server()
-    
+    selenium_test_handler.test_signup_functionality()
+    # selenium_test_handler.tearDown()

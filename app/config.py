@@ -8,4 +8,4 @@ class Config:
     SECRET_KEY = os.urandom(10)
     
 class TestingConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')  
