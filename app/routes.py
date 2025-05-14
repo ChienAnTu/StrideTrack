@@ -80,7 +80,7 @@ def register_routes(app):
                         reader = csv.DictReader(io.StringIO(content))
 
                         for row in reader:
-                            try:
+                            try:                                
                                 activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
                                 duration_minutes = float(row['duration_minutes'])
                                 activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
@@ -97,6 +97,7 @@ def register_routes(app):
                                     calories_burned=calories_burned,
                                     distance_m=float(row['distance_m']) if row.get('distance_m') else None,
                                     weight_kg=weight,
+                                    # TODO: Delete below useless column
                                     average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
                                     max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
                                     start_lat=row.get('start_lat'),
@@ -138,10 +139,10 @@ def register_routes(app):
 
                     # Nullable columns
                     distance_m = request.form.get('distance_m') or None
-                    average_speed_mps = request.form.get('average_speed_mps') or None
-                    max_speed_mps = request.form.get('max_speed_mps') or None
-                    start_lat = request.form.get('start_lat') or None
-                    end_lat = request.form.get('end_lat') or None
+                    # average_speed_mps = request.form.get('average_speed_mps') or None
+                    # max_speed_mps = request.form.get('max_speed_mps') or None
+                    # start_lat = request.form.get('start_lat') or None
+                    # end_lat = request.form.get('end_lat') or None
 
                     new_entry = ActivityRegistry(
                         upload_user_id=current_user.id,
@@ -151,11 +152,11 @@ def register_routes(app):
                         activity_length=activity_length,
                         calories_burned=calories_burned,
                         weight_kg=weight,
-                        distance_m=float(distance_m) if distance_m else None,
-                        average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
-                        max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
-                        start_lat=start_lat,
-                        end_lat=end_lat
+                        distance_m=float(distance_m) if distance_m else None
+                        # average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
+                        # max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
+                        # start_lat=start_lat,
+                        # end_lat=end_lat
                     )
 
                     db.session.add(new_entry)
