@@ -80,7 +80,7 @@ def register_routes(app):
                         reader = csv.DictReader(io.StringIO(content))
 
                         for row in reader:
-                            try:
+                            try:                                
                                 activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
                                 duration_minutes = float(row['duration_minutes'])
                                 activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
@@ -97,6 +97,7 @@ def register_routes(app):
                                     calories_burned=calories_burned,
                                     distance_m=float(row['distance_m']) if row.get('distance_m') else None,
                                     weight_kg=weight,
+                                    # TODO: Delete below useless column
                                     average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
                                     max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
                                     start_lat=row.get('start_lat'),
@@ -138,10 +139,10 @@ def register_routes(app):
 
                     # Nullable columns
                     distance_m = request.form.get('distance_m') or None
-                    average_speed_mps = request.form.get('average_speed_mps') or None
-                    max_speed_mps = request.form.get('max_speed_mps') or None
-                    start_lat = request.form.get('start_lat') or None
-                    end_lat = request.form.get('end_lat') or None
+                    # average_speed_mps = request.form.get('average_speed_mps') or None
+                    # max_speed_mps = request.form.get('max_speed_mps') or None
+                    # start_lat = request.form.get('start_lat') or None
+                    # end_lat = request.form.get('end_lat') or None
 
                     new_entry = ActivityRegistry(
                         upload_user_id=current_user.id,
@@ -151,11 +152,11 @@ def register_routes(app):
                         activity_length=activity_length,
                         calories_burned=calories_burned,
                         weight_kg=weight,
-                        distance_m=float(distance_m) if distance_m else None,
-                        average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
-                        max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
-                        start_lat=start_lat,
-                        end_lat=end_lat
+                        distance_m=float(distance_m) if distance_m else None
+                        # average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
+                        # max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
+                        # start_lat=start_lat,
+                        # end_lat=end_lat
                     )
 
                     db.session.add(new_entry)
@@ -228,41 +229,80 @@ def register_routes(app):
         shared_data = get_shared_activities_with_user(current_user.email)
         return render_template("shared_with_me.html", shared_data=shared_data)
 
+
     @app.route('/share', methods=['GET', 'POST'])
     @login_required
     def share():
         if request.method == 'POST':
-            share_email = request.form.get('share_email')
-            # upload_time = request.form.get('upload_time')
-            upload_time_str = request.form.get('upload_time')
-            upload_time = datetime.fromisoformat(upload_time_str)
+            action = request.form.get('action')
 
-            # Check if the email exists
-            target_user = User.query.filter_by(email=share_email).first()
-            if not target_user:
-                flash("The user you're trying to share with does not exist.")
+            # Batch delete
+            if action == 'delete':
+                ids_to_delete = request.form.getlist('selected_ids')
+                try:
+                    for activity_id in ids_to_delete:
+                        record = ActivityRegistry.query.filter_by(
+                            upload_user_id=current_user.id,
+                            id=int(activity_id)
+                        ).first()
+                        if record:
+                            db.session.delete(record)
+
+                    db.session.commit()
+                    flash(f"Deleted {len(ids_to_delete)} activity record(s).", "info")
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f"Error deleting records: {e}", "error")
+
                 return redirect(url_for('share'))
 
-            new_share = SharedActivity(
-                sharing_user=current_user.id,
-                activity_upload_time=upload_time,
-                user_shared_with=share_email
-            )
+            # Batch share
+            elif action == 'share':
+                ids_str = request.form.get('share_ids', '')
+                email = request.form.get('share_email', '').strip()
 
-            try:
-                db.session.add(new_share)
-                db.session.commit()
-                flash("Activity shared successfully.")
-            except Exception as e:
-                print("Share failed:", e)
-                flash("An error occurred while sharing.")
+                if not email:
+                    flash("No email provided for sharing.", "error")
+                    return redirect(url_for('share'))
 
-            return redirect(url_for('share'))
+                share_ids = [int(i) for i in ids_str.split(',') if i.strip().isdigit()]
 
-        # GET request
-        activities = ActivityRegistry.query.filter_by(upload_user_id=current_user.id).all()
+                try:
+                    target_user = User.query.filter_by(email=email).first()
+                    if not target_user:
+                        flash("The user you're trying to share with does not exist.", "error")
+                        return redirect(url_for('share'))
+
+                    for activity_id in share_ids:
+                        existing = SharedActivity.query.filter_by(
+                            activity_id=activity_id,
+                            user_shared_with=email
+                        ).first()
+
+                        if not existing:
+                            new_share = SharedActivity(
+                                activity_id=activity_id,
+                                user_shared_with=email,
+                                sharing_user_id=current_user.id
+                            )
+                            db.session.add(new_share)
+
+                    db.session.commit()
+                    flash(f"Shared {len(share_ids)} activity record(s) with {email}.", "info")
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f"Failed to share: {e}", "error")
+
+                return redirect(url_for('share'))
+
+        # GET: Show limited list: support {?limit=10 or 20}
+        limit = request.args.get("limit", default=10, type=int)
+        activities = ActivityRegistry.query \
+            .filter_by(upload_user_id=current_user.id) \
+            .order_by(ActivityRegistry.activity_date.desc()) \
+            .limit(limit).all()
+
         return render_template("share.html", activities=activities)
-
 
 
     @app.route('/logout')

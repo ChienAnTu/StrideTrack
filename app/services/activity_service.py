@@ -30,28 +30,25 @@ def get_weekly_calories_summary(user_id: int, start_date: date, goal: int = 300)
         "end_date": end_date.strftime("%Y-%m-%d")
     }
 
+
 def get_shared_activities_with_user(user_email: str):
     shares = SharedActivity.query.filter_by(user_shared_with=user_email).all()
-    
+
     shared_data = []
     for share in shares:
-        activity = ActivityRegistry.query.filter_by(
-            upload_user_id=share.sharing_user,
-            upload_time=share.activity_upload_time
-        ).first()
-
-        sharing_user = User.query.get(share.sharing_user)
-
-        if activity and sharing_user:
+        activity = ActivityRegistry.query.get(share.activity_id)
+        sharing_user = User.query.get(share.sharing_user_id)
+        if activity:
             shared_data.append({
                 "activity_type": activity.activity_type.title(),
                 "activity_length": activity.activity_length,
                 "activity_date": activity.activity_date.strftime('%Y-%m-%d'),
                 "calories_burned": activity.calories_burned,
-                "shared_by": sharing_user.email
+                "shared_by": sharing_user.email if sharing_user else "Unknown"
             })
 
     return shared_data
+
 
 def get_user_activities(user_id: int):
     records = ActivityRegistry.query.filter_by(upload_user_id=user_id).all()
