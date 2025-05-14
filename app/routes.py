@@ -5,6 +5,17 @@ from datetime import datetime, timedelta
 from flask_login import login_user, logout_user, login_required, current_user
 
 # from app import db  # Uncomment if using database
+def calculate_calories(activity, duration, weight):
+    met_values = {
+        "walking": 3.5,
+        "running": 8.3,
+        "cycling": 6.0,
+        "hiking": 6.0,
+        "swimming": 5.8,
+        "yoga": 2.5
+    }
+    
+    return round(duration * met_values[activity] * weight * 0.0175, 2)
 
 def register_routes(app):
     @app.route('/')
@@ -55,9 +66,7 @@ def register_routes(app):
             }
 
             if activity in met_values:
-                met = met_values[activity]
-                calories_burned = round(duration * met * weight * 0.0175, 2)
-
+                calories_burned = calculate_calories(activity, duration, weight)
                 # Save to session
                 session['calories_burned'] = calories_burned
                 session['selected_activity'] = activity.title()

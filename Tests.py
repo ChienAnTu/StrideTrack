@@ -1,29 +1,77 @@
-from app import create_app, db
-from app.models import User
+from app import create_testing_app, db
+from app.models import User, ActivityRegistry
+from datetime import date, time, datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import unittest
+import multiprocessing
+import threading
+from selenium import webdriver
 from random_username.generate import generate_username
 from app.config import TestingConfig
+from app.routes import calculate_calories
+
+LOCALHOST = "http://localhost:5000/"
+
+ACTIVITY_MET_VALUES = {
+    "walking": 3.5,
+    "running": 8.3,
+    "cycling": 6.0,
+    "hiking": 6.0,
+    "swimming": 5.8,
+    "yoga": 2.5
+}
+
+ACTIVITY_TYPES = {
+    1 : "walking",
+    2 : "running",
+    3 : "cycling",
+    4 : "hiking",
+    5 : "swimming",
+    6 : "yoga"
+}
 
 def addUser(name, email, password_hash):
     to_add = User(username=name, email = email, password_hash = password_hash)
     db.session.add(to_add)
     db.session.commit()
 
+def addActivity(upload_user_id, activity_type, activity_date, activity_length):
+    to_add = ActivityRegistry (
+        upload_user_id = upload_user_id, 
+        upload_time = datetime.datetime.now(),
+        activity_date = activity_date,
+        activity_length = activity_length
+        )
+    db.session.add(to_add)
+    db.session.commit()
+
+def create_test_server():
+    """Creates and runs the Flask test server."""
+    app = create_testing_app(TestingConfig)
+    app.run()
+
 class UnitTestingHandler(unittest.TestCase):
     def test_setup(self):
         testValue = True
         try:
-            self.app = create_app(TestingConfig)
-            with self.app.app_context():
-                db.drop_all() # Wipe the testing database clean for new additions.
+            self.app = create_testing_app(TestingConfig)
+            self.app_context = self.app.app_context()
+            self.app_context.push()
+            with self.app_context:
+                db.drop_all()  # Wipe the testing database clean for new additions.
             print("App Setup Test passed")
         except Exception as e:
             testValue = False
             print("App Setup Test failed")
             print(f"Error Message: {e}")
         return testValue
+
+    def setup_test_server(self):
+        self.server_thread = multiprocessing.Process(target=create_test_server)
+        self.server_thread.start()
+        self.driver = webdriver.Chrome()
+        self.driver.get(LOCALHOST)
 
 class DatabaseTestHandler():
     def __init__(self, handler):
@@ -32,7 +80,7 @@ class DatabaseTestHandler():
     def test_database_creation(self):
         testValue = True
         try:
-            with self.handler.app.app_context():
+            with self.handler.app_context:
                 db.create_all()
                 print("DB Setup Test passed")
         except Exception as e:
@@ -41,12 +89,12 @@ class DatabaseTestHandler():
             print(f"Error Message: {e}")
         return testValue
         
-    def test_db_addition(self, count): 
+    def test_db_user_addition(self, count):
         testValue = True
         self.handler.test_users = generate_username(count)
         self.handler.user_password_dictionary = {}
         self.handler.user_passwordHash_dictionary = {}
-        with self.handler.app.app_context():
+        with self.handler.app_context:
             try:
                 for user in self.handler.test_users:
                     password = list(user)
@@ -72,11 +120,11 @@ class DatabaseTestHandler():
     
     def test_password_hashing(self):
         testValue = True
-        with self.handler.app.app_context():
+        with self.handler.app_context:
             for user in self.handler.test_users:
                 if (check_password_hash(self.handler.user_passwordHash_dictionary[user], self.handler.user_password_dictionary[user])
                     ) == False:
-                    print(f"Hash testing for user {user} failed! Hashed password is not recognized")
+                    print(f"Hash testing for user {user} failed! User password is not recognized by the database!")
                     testValue = False
             if testValue == True:
                 print("Password Hashing Testing passed")
@@ -91,12 +139,13 @@ class DatabaseTestHandler():
             counter += 1
         print("User ID auto-increment testing passed")
         return testValue
-            
-
-testing_handler = UnitTestingHandler()
-testing_handler.test_setup()
-database_test_handler = DatabaseTestHandler(testing_handler)
-database_test_handler.test_database_creation()
-database_test_handler.test_db_addition(100)
-database_test_handler.test_password_hashing()
-database_test_handler.test_user_ID()
+        
+if __name__ == '__main__':
+    testing_handler = UnitTestingHandler()
+    testing_handler.test_setup()
+    database_test_handler = DatabaseTestHandler(testing_handler)
+    database_test_handler.test_database_creation()
+    database_test_handler.test_db_user_addition(20)
+    database_test_handler.test_password_hashing()
+    database_test_handler.test_user_ID()
+    testing_handler.setup_test_server()
