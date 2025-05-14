@@ -37,7 +37,7 @@
               {% for a in activities %}
               <tr class="border-b hover:bg-orange-50">
                 <td class="px-4 py-2">
-                  <input type="checkbox" name="selected_ids" value="{{ a.upload_time }}" class="row-checkbox">
+                  <input type="checkbox" name="selected_ids" value="{{ a.id }}" class="row-checkbox">
                 </td>
                 <td class="px-4 py-2">{{ a.activity_type.title() }}</td>
                 <td class="px-4 py-2">{{ a.activity_length }}</td>
@@ -60,7 +60,7 @@
       <!-- Share block -->
       <section>
         <h3 class="text-xl font-semibold mb-2">Share Selected Activities</h3>
-        <form method="POST" action="{{ url_for('share') }}">
+        <form method="POST" action="{{ url_for('share') }}" onsubmit="return collectShareIds()">
           <input type="hidden" name="action" value="share">
           <input type="hidden" id="share-ids" name="share_ids">
 

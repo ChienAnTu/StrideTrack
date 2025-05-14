@@ -11,15 +11,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Collect shared data id
-  if (shareForm && shareIdsInput) {
-    shareForm.addEventListener("submit", function (e) {
-      const checked = Array.from(document.querySelectorAll(".row-checkbox:checked"));
-      const ids = checked.map(cb => cb.value);
-      shareIdsInput.value = ids.join(",");
-    });
-  }
 });
+
+// Collect shared data id
+function collectShareIds() {
+  const checked = Array.from(document.querySelectorAll(".row-checkbox:checked"));
+  const ids = checked.map(cb => cb.value);
+  if (ids.length === 0) {
+    alert("Please select at least one activity to share.");
+    return false; // prevent submission
+  }
+  document.getElementById("share-ids").value = ids.join(",");
+  return true;
+}
 
 // Delete button function
 function setActionAndSubmit(action) {

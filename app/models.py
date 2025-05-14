@@ -23,7 +23,7 @@ class User(db.Model, UserMixin):
 
 class ActivityRegistry(db.Model):
     __tablename__ = "ActivityRegistry"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, name="Sr_no")
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     upload_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False, name="upload_user_id")
     upload_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
@@ -41,6 +41,12 @@ class ActivityRegistry(db.Model):
 
 class SharedActivity(db.Model):
     __tablename__ = "SharedActivity"
-    sharing_user: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.upload_user_id'), primary_key=True, name="sharing_user")
-    activity_upload_time: Mapped[datetime] = mapped_column(ForeignKey('ActivityRegistry.upload_time'), primary_key=True, name="activity_upload_time")
-    user_shared_with: Mapped[str] = mapped_column(ForeignKey('Users.email'), primary_key=True, name="user_shared_with")
+
+    activity_id: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.id'))
+    user_shared_with: Mapped[str] = mapped_column(ForeignKey('Users.email'))
+    sharing_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False)
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint("activity_id", "user_shared_with", name="pk_sharedactivity"),
+    )
+
