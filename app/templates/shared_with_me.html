@@ -10,6 +10,20 @@
 
         {% if shared_data %}
         <div class="bg-white p-6 rounded-xl shadow-md">
+            <div class="flex items-center justify-between">
+              <h2 class="text-2xl font-semibold mb-4">Activities</h2>
+              <form method="GET" class="flex items-center space-x-2">
+                <input type="hidden" name="page" value="1">
+                <label for="limit" class="text-sm font-medium text-gray-700">Show</label>
+                <select name="limit" id="limit" class="border rounded px-2 py-1 text-sm"
+                  onchange="this.form.submit()">
+                  <option value="10" {% if limit == 10 %}selected{% endif %}>10</option>
+                  <option value="20" {% if limit == 20 %}selected{% endif %}>20</option>
+                </select>
+              </form>
+
+            </div>
+
             <table class="min-w-full table-auto text-sm">
             <thead>
                 <tr class="text-left bg-gray-100">
@@ -32,6 +46,17 @@
                 {% endfor %}
             </tbody>
             </table>
+        </div>
+        {% set total_pages = (total_items // limit) + (1 if total_items % limit > 0 else 0) %}
+        <div class="flex justify-end items-center mt-4 space-x-2">
+          {% if page > 1 %}
+          <a href="{{ url_for('shared_with_me', page=page-1, limit=limit) }}"
+            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">← Prev</a>
+          {% endif %}
+          {% if page < total_pages %}
+          <a href="{{ url_for('shared_with_me', page=page+1, limit=limit) }}"
+            class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">Next →</a>
+          {% endif %}
         </div>
         <!-- Leaderboard -->
         <div class="bg-white p-6 rounded-xl shadow-md">
