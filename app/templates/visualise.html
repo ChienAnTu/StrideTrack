@@ -7,12 +7,40 @@
     <!-- main body -->
     <div class="pt-20 max-w-5xl mx-auto px-4 space-y-8">
       <h2 class="text-2xl font-semibold mb-4">Your Activity Progress</h2>
+      <form method="get" class="mb-6 flex flex-wrap items-center gap-4">
+    <label class="text-sm font-semibold">Filter by:</label>
 
-      <div class="bg-white p-6 rounded-xl shadow-md">
-        <h3 class="text-xl font-bold mb-4">Time Spent on Each Activity</h3>
-        <canvas id="activityTimeChart" height="150"></canvas>
+    <!-- Day Picker -->
+    <input type="date" name="day" class="border p-2 rounded" value="{{ request.args.get('day', '') }}">
+
+    <!-- Week Picker -->
+    <input type="week" name="week" class="border p-2 rounded" value="{{ request.args.get('week', '') }}">
+
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
+
+    {% if request.args %}
+    <a href="{{ url_for('visualise') }}" class="text-sm text-red-500 ml-2">Clear</a>
+    {% endif %}
+  </form>
+
+
+      <!-- Bar Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <h3 class="text-xl font-bold mb-4">Time Spent on Each Activity</h3>
+      <div class="h-72 max-w-sm mx-auto">
+        <canvas id="activityTimeChart" class="max-h-full w-full"></canvas>
       </div>
     </div>
+
+    <!-- Pie Chart -->
+    <div class="bg-white p-6 rounded-xl shadow-md mt-8">
+      <h3 class="text-xl font-bold mb-4">Time Spent Distribution</h3>
+      <div class="h-72 max-w-sm mx-auto">
+        <canvas id="activityPieChart" class="max-h-full w-full"></canvas>
+      </div>
+    </div>
+
+
   </main>
 </div>
 
@@ -27,50 +55,7 @@
   {{ activities | tojson | safe }}
 </script>
 
-<script>
-  //Visualizing graph
-const rawDataScript = document.getElementById('activity-data');
-const rawData = rawDataScript ? JSON.parse(rawDataScript.textContent) : [];
-
-const activityTotals = {};
-const calorieTotals = {};
-
-rawData.forEach(a => {
-  const [h, m, s] = a.activity_length.split(':').map(Number);
-  const totalMinutes = h * 60 + m + s / 60;
-
-  activityTotals[a.activity_type] = (activityTotals[a.activity_type] || 0) + totalMinutes;
-  calorieTotals[a.activity_type] = (calorieTotals[a.activity_type] || 0) + a.calories_burned;
-});
-
-const ctx = document.getElementById('activityTimeChart').getContext('2d');
-new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: Object.keys(activityTotals),
-    datasets: [
-      {
-        label: 'Minutes',
-        data: Object.values(activityTotals),
-        backgroundColor: 'rgba(54, 162, 235, 0.6)'
-      },
-      {
-        label: 'Calories Burned',
-        data: Object.values(calorieTotals),
-        backgroundColor: 'rgba(255, 99, 132, 0.6)'
-      }
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: {
-      y: { beginAtZero: true },
-      x: { stacked: false }
-    }
-  }
-});
-
-</script>
+<script src="{{ url_for('static', filename='script/visualise_charts.js') }}"></script>
 
 
 <!-- Pass JSON from Flask to JS -->
