@@ -8,7 +8,9 @@ from app.services.activity_service import (
     get_shared_activities_with_user,
     get_user_activities,
     get_latest_activity_entry,
-    get_weekly_calories_summary
+    get_weekly_calories_summary,
+    get_global_leaderboard,
+    get_shared_activity_summary_by_type
 )
 
 
@@ -223,13 +225,37 @@ def register_routes(app):
         return render_template("visualise.html", activities=activities)
    
     # -------------Share data view--------------
+    # @app.route('/shared_with_me')
+    # @login_required
+    # def shared_with_me():
+    #     shared_data = get_shared_activities_with_user(current_user.email)
+    #     return render_template("shared_with_me.html", shared_data=shared_data)
+
+
     @app.route('/shared_with_me')
     @login_required
     def shared_with_me():
+        # from app.services.activity_service import (
+        #     get_shared_activities_with_user,
+        #     get_global_leaderboard,
+        #     get_shared_activity_summary_by_type
+        # )
+
         shared_data = get_shared_activities_with_user(current_user.email)
-        return render_template("shared_with_me.html", shared_data=shared_data)
+        leaderboard = get_global_leaderboard()
+        shared_summary = get_shared_activity_summary_by_type(current_user.email)
+
+        return render_template(
+            "shared_with_me.html",
+            shared_data=shared_data,
+            leaderboard=leaderboard,
+            shared_summary=shared_summary
+        )
 
 
+
+
+    # -------------------------------
     @app.route('/share', methods=['GET', 'POST'])
     @login_required
     def share():
