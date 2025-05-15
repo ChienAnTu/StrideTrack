@@ -52,9 +52,10 @@ def register_routes(app):
 
         # Filtered activities (for bar chart)
         activities = ActivityRegistry.query.filter(
-            ActivityRegistry.upload_user_id == current_user.id,
-            ActivityRegistry.activity_date.between(start, end)
-        ).all()
+        ActivityRegistry.upload_user_id == current_user.id,
+        ActivityRegistry.activity_date.between(start, end)
+        ).order_by(ActivityRegistry.activity_date.asc()).all()
+
 
         activities_data = [
             {
@@ -82,7 +83,9 @@ def register_routes(app):
             duration=latest["duration"],
             activities=activities_data,
             weekly=weekly,
-            timedelta=timedelta
+            timedelta=timedelta,
+            start=start,
+            end=end
         )
 
     @app.route('/challenges')

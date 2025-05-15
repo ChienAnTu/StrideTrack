@@ -132,9 +132,10 @@
         <!-- Show date range summary -->
         {% if activities %}
         <p class="text-sm text-gray-600 mb-2">
-          Showing data from <strong>{{ activities[0].activity_date }}</strong>
-          to <strong>{{ activities[-1].activity_date }}</strong>
+          Showing data from <strong>{{ start.strftime('%b %d, %Y') }}</strong>
+          to <strong>{{ end.strftime('%b %d, %Y') }}</strong>
         </p>
+
 
         {% else %}
         <p class="text-sm text-gray-600 mb-2">No activity data for the selected period.</p>
