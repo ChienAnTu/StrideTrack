@@ -146,3 +146,45 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+//ajax request for nutrition suggestion
+document.addEventListener('DOMContentLoaded', function() {
+    const nutritionDiv = document.getElementById('nutrition-suggestion');
+    const refreshButton = document.getElementById('refresh-nutrition');
+    
+    // Get calories from rendered template
+    const calories = parseInt(document.querySelector('.text-2xl.font-bold.mt-1').textContent) || 0;
+    console.log("Detected calories:", calories);  // Debugging
+    
+    // Show panel if calories exist
+    if (calories > 0) {
+        nutritionDiv.classList.remove('hidden');
+        fetchNutritionSuggestion(calories);
+    }
+    // Refresh button
+    refreshButton.addEventListener('click', () => {
+        nutritionDiv.classList.remove('hidden');
+        fetchNutritionSuggestion(calories);
+    });
+
+    async function fetchNutritionSuggestion(calories) {
+        try {
+            nutritionDiv.classList.add('opacity-50');
+            
+            const response = await fetch(`/api/nutrition-suggestion?calories=${calories}`);
+            if (!response.ok) throw new Error("API error");
+            
+            const data = await response.json();
+            document.getElementById('nutrition-content').innerHTML = `
+                <p>${data.suggestion}</p>
+                <p class="mt-2 text-yellow-600">💧 ${data.hydration}</p>
+            `;
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById('nutrition-content').innerHTML = `
+                <p class="text-red-500">Couldn't load suggestions</p>
+            `;
+        } finally {
+            nutritionDiv.classList.remove('opacity-50');
+        }
+    }
+});
