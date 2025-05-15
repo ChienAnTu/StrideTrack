@@ -1,5 +1,5 @@
 from app import create_testing_app, db
-from app.models import User, ActivityRegistry
+from app.models import User, ActivityRegistry, SharedActivity
 from datetime import date, time, datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
@@ -61,6 +61,15 @@ def addActivity(upload_user_id, activity_type, activity_date, activity_length_mi
     
     db.session.add(to_add)
     db.session.commit()
+    
+def addSharedActivity(activity_id: int, user_shared_with: str, sharing_user_id: int):
+    shared = SharedActivity(
+        activity_id=activity_id,
+        user_shared_with=user_shared_with,
+        sharing_user_id=sharing_user_id
+    )
+    db.session.add(shared)
+    db.session.commit()
 
 def create_test_server():
     """Creates and runs the Flask test server."""
@@ -120,7 +129,6 @@ class SeleniumTestHandler():
         self.parent.driver.get(LOCALHOST)
 
         self.parent.driver.find_element(By.ID, "login").click()
-        self.parent.driver.find_element(By.ID, "login-button").click()
         
         email_input = self.parent.driver.find_element(By.ID, "login-email")
         password_input = self.parent.driver.find_element(By.ID, "login-password")
@@ -240,21 +248,69 @@ class DatabaseTestHandler():
             print("Random activity addition test failed")
             print(f"Error Message: {e}")
         return testValue
+    
+    def test_db_shared_activity_addition(self, count):
+        testValue = True
+        try:
+            with self.handler.app_context:
+                users = db.session.query(User).all()
+                user_ids = [user.id for user in users]
+                user_emails = {user.id: user.email for user in users}
 
-        
-if __name__ == '__main__':
-    testing_handler = UnitTestingHandler()
-    testing_handler.test_setup()
+                for user in users:
+                    possible_others = [u for u in users if u.id != user.id]
+                    if not possible_others:
+                        continue  # Skip if only one user in DB
+
+                    for _ in range(count):
+                        # Randomly select another user to share from
+                        other_user = random.choice(possible_others)
+                        # Get all activities for the other user
+                        activities = db.session.query(ActivityRegistry).filter_by(upload_user_id=other_user.id).all()
+                        if not activities:
+                            continue  # Skip if no activities to share
+                        # Randomly select one activity to share
+                        activity = random.choice(activities)
+                        # Add shared activity (activity_id, user_shared_with, sharing_user_id)
+                        addSharedActivity(
+                            activity_id=activity.id,
+                            user_shared_with=user_emails[user.id],
+                            sharing_user_id=other_user.id
+                        )
+                print(f"Random shared activity addition test passed: {count} shared activities per user.")
+        except Exception as e:
+            testValue = False
+            print("Random shared activity addition test failed")
+            print(f"Error Message: {e}")
+        return testValue
+
+
+def run_back_end_test(testing_handler):
+    start_time = t_lib.time() # Used for calculating how long each test took
     database_test_handler = DatabaseTestHandler(testing_handler)
-    selenium_test_handler = SeleniumTestHandler(testing_handler)
     database_test_handler.test_database_creation()
     database_test_handler.test_db_user_addition(10)
     database_test_handler.test_password_hashing()
     database_test_handler.test_user_ID()
     database_test_handler.test_db_activity_addition(5)
-    #selenium_test_handler.setup_test_server()
-    #t_lib.sleep(1)
-    #selenium_test_handler.test_signup_functionality("testUser", "testuser@mail.com", "password123")
-    #t_lib.sleep(1)
-    #selenium_test_handler.test_signin_functionality("testuser@mail.com", "password123")
-    # selenium_test_handler.tearDown()
+    database_test_handler.test_db_shared_activity_addition(10)
+        
+    end_time = t_lib.time()  # End timer
+    elapsed = end_time - start_time
+    print(f"\nBack End Testing Finished: Total test time: {elapsed:.2f} seconds")
+
+def run_selenium_test(testing_handler):
+    selenium_test_handler = SeleniumTestHandler(testing_handler)
+    selenium_test_handler.setup_test_server()
+    t_lib.sleep(1)
+    selenium_test_handler.test_signup_functionality("testUser", "testuser@mail.com", "password123")
+    t_lib.sleep(1)
+    selenium_test_handler.test_signin_functionality("testuser@mail.com", "password123")
+    selenium_test_handler.tearDown()
+    print(f"Selenium Testing Finished")
+    
+if __name__ == '__main__':
+    testing_handler = UnitTestingHandler()
+    testing_handler.test_setup()
+    run_back_end_test(testing_handler)
+    run_selenium_test(testing_handler)
