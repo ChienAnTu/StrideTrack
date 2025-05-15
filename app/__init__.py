@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from app.config import Config
 from datetime import datetime
+from flask_wtf import CSRFProtect
 # from sqlalchemy.orm import DeclarativeBase
 
 def create_app():
@@ -16,6 +17,11 @@ def create_app():
     # Initialize Flask extensions
     db.init_app(app)
     migrate.init_app(app, db)
+
+    # CSRF Protection
+    csrf = CSRFProtect()
+    csrf.init_app(app)
+
 
     # --- Setup Flask-Login ---
     login_manager = LoginManager()

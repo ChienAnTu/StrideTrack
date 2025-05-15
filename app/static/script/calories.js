@@ -1,70 +1,37 @@
-// document.addEventListener("DOMContentLoaded", function () {
-//   const activitySelect = document.getElementById("activity");
-//   const distanceContainer = document.getElementById("distance-container");
-
-//   function toggleDistanceField() {
-//     const selected = activitySelect.value.toLowerCase();
-//     if (selected === "yoga") {
-//       distanceContainer.style.display = "none";
-//     } else {
-//       distanceContainer.style.display = "block";
-//     }
-//   }
-
-//   if (activitySelect && distanceContainer) {
-//     toggleDistanceField();
-//     activitySelect.addEventListener("change", toggleDistanceField);
-//   }
-// });
-// -------------------------------------
-// document.addEventListener("DOMContentLoaded", function () {
-//   // === Hide distance when yoga selected ===
-//   const activitySelect = document.getElementById("activity");
-//   const distanceContainer = document.getElementById("distance-container");
-
-//   function toggleDistanceField() {
-//     const selected = activitySelect.value.toLowerCase();
-//     distanceContainer.style.display = selected === "yoga" ? "none" : "block";
-//   }
-
-//   if (activitySelect && distanceContainer) {
-//     toggleDistanceField();
-//     activitySelect.addEventListener("change", toggleDistanceField);
-//   }
-
-//   // === Drag-and-Drop CSV Upload ===
-//   const dropZone = document.getElementById("drop-zone");
-//   const fileInput = document.getElementById("file-input");
-//   const form = document.getElementById("csv-upload-form");
-
-//   if (dropZone && fileInput && form) {
-//     dropZone.addEventListener("dragover", (e) => {
-//       e.preventDefault();
-//       dropZone.classList.add("bg-gray-100");
-//     });
-
-//     dropZone.addEventListener("dragleave", () => {
-//       dropZone.classList.remove("bg-gray-100");
-//     });
-
-//     dropZone.addEventListener("drop", (e) => {
-//       e.preventDefault();
-//       dropZone.classList.remove("bg-gray-100");
-//       const files = e.dataTransfer.files;
-//       if (files.length) {
-//         fileInput.files = files;
-//         form.submit();
-//       }
-//     });
-
-//     fileInput.addEventListener("change", () => {
-//       if (fileInput.files.length) {
-//         form.submit();
-//       }
-//     });
-//   }
-// });
 document.addEventListener("DOMContentLoaded", function () {
+  // Tab toggle
+  const tabManual = document.getElementById("tab-manual");
+  const tabTrail = document.getElementById("tab-trail");
+  const manualCard = document.getElementById("manual-card");
+  const trailCard = document.getElementById("trail-card");
+
+  if (tabManual && tabTrail && manualCard && trailCard) {
+    tabManual.addEventListener("click", () => {
+      manualCard.classList.remove("hidden");
+      trailCard.classList.add("hidden");
+      tabManual.classList.replace("bg-gray-200", "bg-orange-600");
+      tabManual.classList.replace("text-gray-700", "text-white");
+      tabTrail.classList.replace("bg-orange-600", "bg-gray-200");
+      tabTrail.classList.replace("text-white", "text-gray-700");
+    });
+
+    tabTrail.addEventListener("click", () => {
+      trailCard.classList.remove("hidden");
+      manualCard.classList.add("hidden");
+      tabTrail.classList.replace("bg-gray-200", "bg-orange-600");
+      tabTrail.classList.replace("text-gray-700", "text-white");
+      tabManual.classList.replace("bg-orange-600", "bg-gray-200");
+      tabManual.classList.replace("text-white", "text-gray-700");
+
+      if (map) {
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 200);
+      }
+    });
+  }
+
+
   // === Hide distance field when 'yoga' selected ===
   const activitySelect = document.getElementById("activity");
   const distanceContainer = document.getElementById("distance-container");
@@ -155,3 +122,181 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+// ========== Trail GPX + Form Auto-fill ==========
+
+// Define trail data
+const trails = {
+  greenMount: {
+    name: "Green Mountain Trail",
+    gpx: "/static/trails/greenMount.gpx",
+    activity: "hiking",
+    distance_km: 5.2,
+    duration_min: 150,
+    difficulty: "Moderate",
+    description: "Scenic trail through dense forest with panoramic views at the summit."
+  },
+  kingsPark: {
+    name: "Kings Park",
+    gpx: "/static/trails/kingsPark.gpx",
+    activity: "running",
+    distance_km: 8.1,
+    duration_min: 240,
+    difficulty: "Hard",
+    description: "Challenging ridge walk with steep sections and exposed areas."
+  },
+  hydePark: {
+    name: "Hyde Park",
+    gpx: "/static/trails/hydePark.gpx",
+    activity: "walking",
+    distance_km: 3.7,
+    duration_min: 90,
+    difficulty: "Easy",
+    description: "Gentle loop through wildflower meadows, perfect for families."
+  },
+  jamesOval: {
+    name: "James Oval",
+    gpx: "/static/trails/jamesOval.gpx",
+    activity: "yoga",
+    distance_km: 0,
+    duration_min: 60,
+    difficulty: "Easy",
+    description: "Free community yoga session every Wednesday at UWA."
+  },
+  bellsRapid: {
+    name: "Bells Rapid",
+    gpx: "/static/trails/bellsRapid.gpx",
+    activity: "hiking",
+    distance_km: 3.77,
+    duration_min: 120,
+    difficulty: "Hard",
+    description: "A challenging hike through the Bells Rapid area."
+  },
+  booyeembarraPark: {
+    name: "Booyeembara Park",
+    gpx: "/static/trails/booyeembaraPark.gpx",
+    activity: "walking",
+    distance_km: 1.09,
+    duration_min: 30,
+    difficulty: "Easy",
+    description: "A walk through the Booyeembara Park."
+  },
+  cottesloeBeach: {
+    name: "Cottesloe Beach",
+    gpx: "/static/trails/cottesloeBeach.gpx",
+    activity: "cycling",
+    distance_km: 14.41,
+    duration_min: 120,
+    difficulty: "Hard",
+    description: "A challenging ride along the Cottesloe Beach."
+  },
+  windanBridge: {
+    name: "Windan Bridge",
+    gpx: "/static/trails/windanBridge.gpx",
+    activity: "cycling",
+    distance_km: 5.19,
+    duration_min: 120,
+    difficulty: "Moderate",
+    description: "A scenic ride along the Windan Bridge loop."
+  },
+  beattyPark: {
+    name: "Beatty Park",
+    gpx: "/static/trails/beattyPark.gpx",
+    activity: "swimming",
+    distance_km: 0,
+    duration_min: 60,
+    difficulty: "Easy",
+    description: "Swimming lanes and pool activities at Beatty Park Leisure Centre."
+  }
+};
+
+// Initialize map
+const mapContainer = document.getElementById("trail-map");
+let map, activeLayer;
+if (mapContainer) {
+  map = L.map("trail-map").setView([-31.95, 115.86], 13); // Default Perth area
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "Map data © OpenStreetMap contributors"
+  }).addTo(map);
+}
+
+// Load trail and fill data
+function loadTrail(trailId) {
+  const trail = trails[trailId];
+  if (!trail || !map) return;
+
+  // Clear previous layer
+  if (activeLayer) map.removeLayer(activeLayer);
+
+  // Load GPX
+  fetch(trail.gpx)
+    .then((res) => res.text())
+    .then((gpxData) => {
+      activeLayer = new L.GPX(gpxData, {
+        async: true,
+        polyline_options: {
+          color: "#10B981",
+          weight: 4
+        },
+        marker_options: {
+          startIconUrl: null,
+          endIconUrl: null
+        }
+      }).on("loaded", function (e) {
+        map.fitBounds(e.target.getBounds());
+      }).addTo(map);
+    });
+
+  // Update trail info
+  document.getElementById("trail-name").textContent = trail.name;
+  document.getElementById("trail-activity").textContent = trail.activity;
+  document.getElementById("trail-distance").textContent = `${trail.distance_km} km`;
+  document.getElementById("trail-duration").textContent = `Roughly ${trail.duration_min} mins`;
+  document.getElementById("trail-difficulty").textContent = trail.difficulty;
+  document.getElementById("trail-description").textContent = trail.description;
+  document.getElementById("trail-details").classList.remove("hidden");
+
+  // === Auto-fill form fields ===
+  const activityField = document.getElementById("trail_activity");
+  const durationField = document.getElementById("trail_duration_custom");
+  const distanceField = document.getElementById("trail_distance_m");
+  const trailNameField = document.getElementById("trail_name");
+
+  if (activityField) activityField.value = trail.activity;
+  if (durationField) durationField.value = trail.duration_min;
+  if (distanceField) distanceField.value = trail.distance_km * 1000;
+  if (trailNameField) trailNameField.value = trail.name;
+}
+
+// Handle activity filter
+const filterSelect = document.getElementById("activity-select");
+if (filterSelect) {
+  filterSelect.addEventListener("change", () => {
+    const selected = filterSelect.value;
+    document.querySelectorAll(".trail-card").forEach((card) => {
+      const activity = card.getAttribute("data-activity");
+      const visible = selected === "all" || activity === selected;
+      card.style.display = visible ? "block" : "none";
+    });
+
+    // Hide trail info
+    document.getElementById("trail-details").classList.add("hidden");
+  });
+}
+
+// Handle trail card click
+document.querySelectorAll(".trail-card").forEach((card) => {
+  card.addEventListener("click", () => {
+    const trailId = card.dataset.trail;
+    loadTrail(trailId);
+  });
+});
+
+// Sync trail_weight input to main weight field
+const trailWeightInput = document.getElementById("trail_weight");
+if (trailWeightInput) {
+  trailWeightInput.addEventListener("input", () => {
+    const weightInput = document.getElementById("weight");
+    if (weightInput) weightInput.value = trailWeightInput.value;
+  });
+}

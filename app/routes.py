@@ -114,9 +114,8 @@ def register_routes(app):
     @login_required
     def calories():
         if request.method == 'POST':
-            # Check if the POST is csv_file or manual
+            # ===== CSV Upload =====
             if 'csv_files' in request.files:
-                # ---------- CSV Upload Logic ----------
                 uploaded_files = request.files.getlist("csv_files")
                 total_success, total_failed = 0, 0
 
@@ -130,7 +129,7 @@ def register_routes(app):
                         reader = csv.DictReader(io.StringIO(content))
 
                         for row in reader:
-                            try:                                
+                            try:
                                 activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
                                 duration_minutes = float(row['duration_minutes'])
                                 activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
@@ -147,11 +146,7 @@ def register_routes(app):
                                     calories_burned=calories_burned,
                                     distance_m=float(row['distance_m']) if row.get('distance_m') else None,
                                     weight_kg=weight,
-                                    # TODO: Delete below useless column
-                                    average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
-                                    max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
-                                    start_lat=row.get('start_lat'),
-                                    end_lat=row.get('end_lat')
+                                    trail_name=row.get('trail_name')  # <== 新增支援 trail_name
                                 )
 
                                 db.session.add(new_entry)
@@ -169,30 +164,24 @@ def register_routes(app):
                 flash(f"Uploaded {total_success} rows. Failed: {total_failed}", "info")
                 return redirect(url_for('calories'))
 
+            # ===== Manual or Trail form =====
             else:
                 try:
-            # ---------- Manual Form Entry ----------
-                    # Required columns
                     activity = request.form['activity'].lower()
                     duration = float(request.form['duration'])
                     weight = float(request.form['weight'])
 
-                    # factors
                     met_values = {
                         "walking": 3.5, "running": 8.3, "cycling": 6.0,
                         "hiking": 6.0, "swimming": 5.8, "yoga": 2.5
                     }
 
-                    met = met_values.get(activity, 3.5)  # fallback: walking
+                    met = met_values.get(activity, 3.5)
                     calories_burned = round(duration * met * weight * 0.0175, 2)
                     activity_length = (datetime.min + timedelta(minutes=duration)).time()
 
-                    # Nullable columns
                     distance_m = request.form.get('distance_m') or None
-                    # average_speed_mps = request.form.get('average_speed_mps') or None
-                    # max_speed_mps = request.form.get('max_speed_mps') or None
-                    # start_lat = request.form.get('start_lat') or None
-                    # end_lat = request.form.get('end_lat') or None
+                    trail_name = request.form.get('trail_name') or None  # <== 新增支援 trail_name
 
                     new_entry = ActivityRegistry(
                         upload_user_id=current_user.id,
@@ -202,17 +191,14 @@ def register_routes(app):
                         activity_length=activity_length,
                         calories_burned=calories_burned,
                         weight_kg=weight,
-                        distance_m=float(distance_m) if distance_m else None
-                        # average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
-                        # max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
-                        # start_lat=start_lat,
-                        # end_lat=end_lat
+                        distance_m=float(distance_m) if distance_m else None,
+                        trail_name=trail_name  # <== 寫入資料庫
                     )
 
                     db.session.add(new_entry)
                     db.session.commit()
 
-                    # Data showed on dashboard TODO: -> modify here
+                    # 傳遞給 dashboard 使用
                     session['calories_burned'] = calories_burned
                     session['selected_activity'] = activity.title()
                     session['duration'] = duration
@@ -223,6 +209,7 @@ def register_routes(app):
                     flash(f"Failed to save entry: {e}", "error")
                     return redirect(url_for('calories'))
 
+        # ===== GET request =====
         return render_template(
             'calories.html',
             title="Calorie Calculator",
@@ -231,6 +218,7 @@ def register_routes(app):
             duration=session.get('duration'),
             user=current_user
         )
+
     
     @app.route('/register', methods=['POST'])
     def register():
@@ -312,7 +300,11 @@ def register_routes(app):
         page = request.args.get("page", default=1, type=int)
 
         all_shared = get_shared_activities_with_user(current_user.email)
-        all_shared_sorted = sorted(all_shared, key=lambda x: x["activity_date"], reverse=True)
+        all_shared_sorted = sorted(
+            all_shared,
+            key=lambda x: (x["activity_date"], x["upload_time"]),
+            reverse=True
+        )                                                   
 
         total_items = len(all_shared_sorted)
         start = (page - 1) * limit
@@ -405,7 +397,9 @@ def register_routes(app):
 
         query = ActivityRegistry.query \
             .filter_by(upload_user_id=current_user.id) \
-            .order_by(ActivityRegistry.activity_date.desc())
+            .order_by(ActivityRegistry.activity_date.desc(),
+                      ActivityRegistry.upload_time.desc()
+                      )
 
         total_items = query.count()
         activities = query.offset(offset).limit(limit).all()

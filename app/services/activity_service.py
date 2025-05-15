@@ -50,9 +50,12 @@ def get_shared_activities_with_user(user_email: str):
         sharing_user = User.query.get(share.sharing_user_id)
         if activity:
             shared_data.append({
+                "activity_date": activity.activity_date.strftime('%Y-%m-%d'),
+                "upload_time": activity.upload_time,
                 "activity_type": activity.activity_type.title(),
                 "activity_length": activity.activity_length,
-                "activity_date": activity.activity_date.strftime('%Y-%m-%d'),
+                "distance_m": activity.distance_m or '-',
+                "trail_name": activity.trail_name or '-',
                 "calories_burned": activity.calories_burned,
                 "shared_by": sharing_user.email if sharing_user else "Unknown"
             })

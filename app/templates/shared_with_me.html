@@ -27,20 +27,30 @@
             <table class="min-w-full table-auto text-sm">
             <thead>
                 <tr class="text-left bg-gray-100">
+                <th class="px-4 py-2">Date</th>
                 <th class="px-4 py-2">Activity</th>
                 <th class="px-4 py-2">Duration</th>
+                <th class="px-4 py-2">Distance</th>
+                <th class="px-4 py-2">Trail</th>
                 <th class="px-4 py-2">Calories</th>
-                <th class="px-4 py-2">Date</th>
                 <th class="px-4 py-2">Shared By</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in shared_data %}
                 <tr class="border-b">
+                <td class="px-4 py-2">{{ item.activity_date }}</td>
                 <td class="px-4 py-2">{{ item.activity_type }}</td>
                 <td class="px-4 py-2">{{ item.activity_length }}</td>
+                <td class="px-4 py-2">
+                  {% if item.distance_m is not none and item.distance_m != '-' %}
+                    {{ item.distance_m|round|int }} m
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td class="px-4 py-2">{{ item.trail_name or '-' }}</td>
                 <td class="px-4 py-2">{{ item.calories_burned }} kcal</td>
-                <td class="px-4 py-2">{{ item.activity_date }}</td>
                 <td class="px-4 py-2">{{ item.shared_by }}</td>
                 </tr>
                 {% endfor %}
@@ -83,7 +93,11 @@
         <!-- Shared Activity Summary Pie Chart -->
         <div class="bg-white p-6 rounded-xl shadow-md">
           <h2 class="text-xl font-bold mb-4">Shared Activity Breakdown (This Week)</h2>
-          <canvas id="sharedPieChart" height="200"></canvas>
+          <div class="w-full flex justify-center">
+            <div class="w-full max-w-[400px] aspect-square">
+              <canvas id="sharedPieChart" width="300" height="200" class="max-w-[300px]"></canvas>
+            </div>
+          </div>
         </div>
 
         {% else %}

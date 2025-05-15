@@ -7,87 +7,93 @@
 
 <div class="bg-white">
   <div class="mx-auto grid max-w-2xl grid-cols-1 items-center gap-x-8 gap-y-16 px-4 py-24 sm:px-6 sm:py-32 lg:max-w-7xl lg:grid-cols-2 lg:px-8">
-    <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Trail Explorer</h2>
-    <p class="mt-4 text-gray-500">Select a trail to view its route and details.</p>
-    <div class="space-y-8 min-h-[600px]">
-      <div>
-      <label for="activity-select" class="block text-sm font-medium text-gray-700">Select Activity</label>
-      <select id="activity-select" name="activity" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
-        <option value="all">All Activities</option>
-        <option value="hiking">Hiking</option>
-        <option value="cycling">Cycling</option>
-        <option value="walking">Walking</option>
-        <option value="swimming">Swimming</option>
-        <option value="yoga">Yoga</option>
-        <option value="running">Running</option>
-      </select>
-    </div>    
-      <!-- Trail Selection Cards -->
-      <div class="max-h-[400px] overflow-y-scroll space-y-4 pr-2">
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="greenMount" data-activity="hiking">
-          <h3 class="font-medium text-lg text-gray-900">Green Mountain Trail</h3>
-        </div>
-        
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="kingsPark" data-activity="running">
-          <h3 class="font-medium text-lg text-gray-900">Kings Park</h3>
-        </div>
-        
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="hydePark" data-activity="walking">
-          <h3 class="font-medium text-lg text-gray-900">Hyde Park</h3>
+    <div>
+      <h2 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Trail Explorer</h2>
+      <p class="mt-4 text-gray-500">Select a trail to view its route and details.</p>
+      <br>
+      <div class="space-y-8 min-h-[600px]">
+        <div>
+        <label for="activity-select" class="block text-sm font-medium text-gray-700">Select Activity</label>
+        <select id="activity-select" name="activity" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md">
+          <option value="all">All Activities</option>
+          <option value="hiking">Hiking</option>
+          <option value="cycling">Cycling</option>
+          <option value="walking">Walking</option>
+          <option value="swimming">Swimming</option>
+          <option value="yoga">Yoga</option>
+          <option value="running">Running</option>
+        </select>
+      </div>    
+        <!-- Trail Selection Cards -->
+        <div class="max-h-[400px] overflow-y-scroll space-y-4 pr-2">
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="greenMount" data-activity="hiking">
+            <h3 class="font-medium text-lg text-gray-900">Green Mountain Trail</h3>
+          </div>
+          
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="kingsPark" data-activity="running">
+            <h3 class="font-medium text-lg text-gray-900">Kings Park</h3>
+          </div>
+          
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="hydePark" data-activity="walking">
+            <h3 class="font-medium text-lg text-gray-900">Hyde Park</h3>
+          </div>
+
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="jamesOval" data-activity="yoga">
+            <h3 class="font-medium text-lg text-gray-900">James Oval</h3>
+          </div>
+          
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="bellsRapid" data-activity="hiking">
+            <h3 class="font-medium text-lg text-gray-900">Bells Rapid</h3>
+          </div>
+          
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="booyeembarraPark" data-activity="walking">
+            <h3 class="font-medium text-lg text-gray-900">Booyeembara Park</h3>
+          </div>
+          
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="cottesloeBeach" data-activity="cycling">
+            <h3 class="font-medium text-lg text-gray-900">Cottesloe Beach</h3>
+          </div>
+          
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="windanBridge" data-activity="cycling">
+            <h3 class="font-medium text-lg text-gray-900">Windan Bridge</h3>
+          </div>
+                  
+          <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="beattyPark" data-activity="swimming">
+            <h3 class="font-medium text-lg text-gray-900">Beatty Park</h3>
+          </div>
         </div>
 
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="jamesOval" data-activity="yoga">
-          <h3 class="font-medium text-lg text-gray-900">James Oval</h3>
+        <!-- Trail Details (Dynamic) -->
+        <div id="trail-details" class="mt-8 hidden">
+          <h3 class="font-medium text-xl text-gray-900" id="trail-name">Trail Name</h3>
+          <dl class="mt-4 grid grid-cols-2 gap-4">
+            <div class="border-t border-gray-200 pt-2">
+              <dt class="text-sm font-medium text-gray-500">Distance</dt>
+              <dd class="mt-1 text-sm text-gray-900" id="trail-distance">--</dd>
+            </div>
+            <div class="border-t border-gray-200 pt-2">
+              <dt class="text-sm font-medium text-gray-500">Elevation</dt>
+              <dd class="mt-1 text-sm text-gray-900" id="trail-elevation">--</dd>
+            </div>
+            <div class="border-t border-gray-200 pt-2">
+              <dt class="text-sm font-medium text-gray-500">Difficulty</dt>
+              <dd class="mt-1 text-sm text-gray-900" id="trail-difficulty">--</dd>
+            </div>
+            <div class="border-t border-gray-200 pt-2">
+              <dt class="text-sm font-medium text-gray-500">Duration</dt>
+              <dd class="mt-1 text-sm text-gray-900" id="trail-duration">--</dd>
+            </div>
+          </dl>
+          <p class="mt-4 text-sm text-gray-500" id="trail-description"></p>
         </div>
-        
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="bellsRapid" data-activity="hiking">
-          <h3 class="font-medium text-lg text-gray-900">Bells Rapid</h3>
-        </div>
-        
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="booyeembarraPark" data-activity="walking">
-          <h3 class="font-medium text-lg text-gray-900">Booyeembara Park</h3>
-        </div>
-        
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="cottesloeBeach" data-activity="cycling">
-          <h3 class="font-medium text-lg text-gray-900">Cottesloe Beach</h3>
-        </div>
-        
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="windanBridge" data-activity="cycling">
-          <h3 class="font-medium text-lg text-gray-900">Windan Bridge</h3>
-        </div>
-                
-        <div class="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 trail-card" data-trail="beattyPark" data-activity="swimming">
-          <h3 class="font-medium text-lg text-gray-900">Beatty Park</h3>
-        </div>
-      </div>
-
-      <!-- Trail Details (Dynamic) -->
-      <div id="trail-details" class="mt-8 hidden">
-        <h3 class="font-medium text-xl text-gray-900" id="trail-name">Trail Name</h3>
-        <dl class="mt-4 grid grid-cols-2 gap-4">
-          <div class="border-t border-gray-200 pt-2">
-            <dt class="text-sm font-medium text-gray-500">Distance</dt>
-            <dd class="mt-1 text-sm text-gray-900" id="trail-distance">--</dd>
-          </div>
-          <div class="border-t border-gray-200 pt-2">
-            <dt class="text-sm font-medium text-gray-500">Elevation</dt>
-            <dd class="mt-1 text-sm text-gray-900" id="trail-elevation">--</dd>
-          </div>
-          <div class="border-t border-gray-200 pt-2">
-            <dt class="text-sm font-medium text-gray-500">Difficulty</dt>
-            <dd class="mt-1 text-sm text-gray-900" id="trail-difficulty">--</dd>
-          </div>
-          <div class="border-t border-gray-200 pt-2">
-            <dt class="text-sm font-medium text-gray-500">Duration</dt>
-            <dd class="mt-1 text-sm text-gray-900" id="trail-duration">--</dd>
-          </div>
-        </dl>
-        <p class="mt-4 text-sm text-gray-500" id="trail-description"></p>
       </div>
     </div>
-
     <!-- Map Container -->
-    <div class="w-full h-[600px]">
+    <div class="w-full h-[600px] flex flex-col space-y-2 items-end pr-4">
+      <a href="{{ url_for('calories') }}"
+        class="text-lg text-orange-600 hover:text-orange-700 font-semibold underline">
+        Finished the challenge? → Go upload your data
+      </a>
       <div id="map" class="w-full h-full rounded-lg shadow-lg"></div>
     </div>
   </div>

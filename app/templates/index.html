@@ -167,6 +167,8 @@ class="hidden bg-black/50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 
     <!-- Modal body -->
     <div id="login-section" class="p-4 md:p-5">
       <form class="space-y-4" action="{{ url_for('login') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
         <div>
           <label
             for="email"
@@ -283,6 +285,7 @@ class="hidden bg-black/50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 
     </div>
     <div id="signup-section" class="p-4 md:p-5">
       <form class="space-y-4" action="{{ url_for('register') }}" method="POST" onsubmit="return fillUsername()">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2">
             <label for="username" class="block mb-2 text-sm font-medium text-gray-900">
@@ -338,7 +341,7 @@ class="hidden bg-black/50 overflow-y-auto overflow-x-hidden fixed top-0 right-0 
           >
           <input
             type="password"
-            name="confirm-password"
+            name="confirmPassword"
             id="confirm-password"
             placeholder="••••••••"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg w-full p-2.5 dark:bg-white-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-black"
