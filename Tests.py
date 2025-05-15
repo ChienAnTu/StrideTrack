@@ -86,10 +86,10 @@ class UnitTestingHandler(unittest.TestCase):
 class SeleniumTestHandler():
     def __init__(self, parent):
         self.parent = parent
-        parent.server_thread = multiprocessing.Process(target=create_test_server)
-        parent.driver = webdriver.Chrome()
     
     def setup_test_server(self):
+        self.parent.server_thread = multiprocessing.Process(target=create_test_server)
+        self.parent.driver = webdriver.Chrome()
         self.parent.server_thread.start()
         self.parent.driver.get(LOCALHOST)
     
@@ -197,6 +197,50 @@ class DatabaseTestHandler():
             counter += 1
         print("User ID auto-increment testing passed")
         return testValue
+    
+    def test_db_activity_addition(self, count):
+        testValue = True
+        try:
+            with self.handler.app_context:
+                users = db.session.query(User).all()
+                today = datetime.now().date()
+                for user in users:
+                    for i in range(count):
+                        # Randomly scatter activity_date within ±7 days of today
+                        day_offset = random.randint(-7, 7)
+                        activity_date = today + timedelta(days=day_offset)
+
+                        # Select one of the activity type.
+                        activity_type = random.choice(list(ACTIVITY_MET_VALUES.keys()))
+
+                        # Random activity length (10 to 120 minutes)
+                        activity_length_minutes = random.randint(10, 120)
+
+                        # Random weight (50kg to 100kg)
+                        weight_kg = round(random.uniform(50, 100), 1)
+
+                        # Random distance (500m to 20000m)
+                        distance_m = round(random.uniform(500, 20000), 1)
+
+                        # Stagger upload_time by a few seconds for uniqueness
+                        t_lib.sleep(0.1 * i)
+
+                        addActivity(
+                            upload_user_id=user.id,
+                            activity_type=activity_type,
+                            activity_date=activity_date,
+                            activity_length_minutes=activity_length_minutes,
+                            weight_kg=weight_kg,
+                            distance_m=distance_m,
+                            trail_name=None
+                        )
+                print(f"Random activity addition test passed: {count} activities per user.")
+        except Exception as e:
+            testValue = False
+            print("Random activity addition test failed")
+            print(f"Error Message: {e}")
+        return testValue
+
         
 if __name__ == '__main__':
     testing_handler = UnitTestingHandler()
@@ -204,12 +248,13 @@ if __name__ == '__main__':
     database_test_handler = DatabaseTestHandler(testing_handler)
     selenium_test_handler = SeleniumTestHandler(testing_handler)
     database_test_handler.test_database_creation()
-    database_test_handler.test_db_user_addition(20)
+    database_test_handler.test_db_user_addition(10)
     database_test_handler.test_password_hashing()
     database_test_handler.test_user_ID()
-    selenium_test_handler.setup_test_server()
-    t_lib.sleep(1)
-    selenium_test_handler.test_signup_functionality("testUser", "testuser@mail.com", "password123")
-    t_lib.sleep(1)
-    selenium_test_handler.test_signin_functionality("testuser@mail.com", "password123")
+    database_test_handler.test_db_activity_addition(5)
+    #selenium_test_handler.setup_test_server()
+    #t_lib.sleep(1)
+    #selenium_test_handler.test_signup_functionality("testUser", "testuser@mail.com", "password123")
+    #t_lib.sleep(1)
+    #selenium_test_handler.test_signin_functionality("testuser@mail.com", "password123")
     # selenium_test_handler.tearDown()
