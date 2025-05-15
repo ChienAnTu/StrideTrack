@@ -1,30 +1,3 @@
-// function openSignIn() {
-//     document.getElementById('loginModal').classList.remove('hidden');
-//   }
-  
-//   function closeSignIn() {
-//     document.getElementById('loginModal').classList.add('hidden');
-//   }
-
-//   // Open modal
-// function openSignUp() {
-//     document.getElementById('signupModal').classList.remove('hidden');
-//     document.body.classList.add('overflow-hidden'); // Prevent scrolling
-//   }
-  
-//   // Close modal
-//   function closeSignup() {
-//     document.getElementById('signupModal').classList.add('hidden');
-//     document.body.classList.remove('overflow-hidden');
-//   }
-  
-//   // Close when clicking outside modal
-//   document.getElementById('signupModal').addEventListener('click', (e) => {
-//     if (e.target === document.getElementById('signupModal')) {
-//       closeSignup();
-//     }
-//   });
-
 // Open login modal
 function openSignIn() {
   const loginModal = document.getElementById('loginModal');
@@ -68,3 +41,33 @@ if (signupModal) {
     }
   });
 }
+
+// Flash Messages.
+document.addEventListener("DOMContentLoaded", () => {
+  const messagesEl = document.getElementById("toast-data");
+  if (!messagesEl) return;
+
+  const messages = JSON.parse(messagesEl.textContent);
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+
+  messages.forEach(([category, text]) => {
+    const toast = document.createElement("div");
+    toast.className = `
+      px-6 py-4 rounded shadow-lg text-base font-semibold flex items-center justify-between gap-3
+      ${category === 'success' ? 'bg-green-100 text-green-800' :
+        category === 'error' ? 'bg-red-100 text-red-800' :
+        'bg-gray-100 text-gray-800'}
+      animate-fadeIn
+      `;
+
+    toast.innerHTML = `
+      <span>${text}</span>
+      <button class="text-lg leading-none" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  });
+});
+

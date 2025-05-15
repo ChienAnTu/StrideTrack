@@ -23,15 +23,30 @@ class User(db.Model, UserMixin):
 
 class ActivityRegistry(db.Model):
     __tablename__ = "ActivityRegistry"
-    upload_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False, primary_key=True, name="upload_user_id")
-    upload_time: Mapped[datetime] = mapped_column(DateTime, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    upload_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False, name="upload_user_id")
+    upload_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(nullable=False)
     activity_length: Mapped[int] = mapped_column(Integer, nullable=False)
     calories_burned: Mapped[float] = mapped_column(nullable=False, default=0.0)
 
+    distance_m: Mapped[float] = mapped_column(nullable=True)
+    weight_kg: Mapped[float] = mapped_column(nullable=True)
+    average_speed_mps: Mapped[float] = mapped_column(nullable=True)
+    max_speed_mps: Mapped[float] = mapped_column(nullable=True)
+    start_lat: Mapped[str] = mapped_column(nullable=True)  # GPS at the start
+    end_lat: Mapped[str] = mapped_column(nullable=True)    # GPS at the end
+
+
 class SharedActivity(db.Model):
     __tablename__ = "SharedActivity"
-    sharing_user: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.upload_user_id'), primary_key=True, name="sharing_user")
-    activity_upload_time: Mapped[datetime] = mapped_column(ForeignKey('ActivityRegistry.upload_time'), primary_key=True, name="activity_upload_time")
-    user_shared_with: Mapped[str] = mapped_column(ForeignKey('Users.email'), primary_key=True, name="user_shared_with")
+
+    activity_id: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.id'))
+    user_shared_with: Mapped[str] = mapped_column(ForeignKey('Users.email'))
+    sharing_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False)
+
+    __table_args__ = (
+        db.PrimaryKeyConstraint("activity_id", "user_shared_with", name="pk_sharedactivity"),
+    )
+

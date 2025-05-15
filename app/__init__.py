@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from app.config import Config
+from datetime import datetime
 # from sqlalchemy.orm import DeclarativeBase
 
 def create_app():
@@ -26,6 +27,8 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
     # -----------------------------------
+
+    app.jinja_env.filters['todatetime'] = lambda s: datetime.strptime(s, "%Y-%m-%d")
 
     # Register routes
     from app.routes import register_routes

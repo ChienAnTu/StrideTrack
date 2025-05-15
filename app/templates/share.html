@@ -4,53 +4,94 @@
 <div class="flex pt-16">
   {% include "_sidebar.html" %}
   <main class="sm:ml-64 w-full p-4 mt-4">
-    <!-- main body -->
-    <div class="pt-20 max-w-4xl mx-auto px-4">
-        <h2 class="text-2xl font-semibold mb-6">Share Your Activity</h2>
+    <div class="pt-20 max-w-6xl mx-auto px-4 space-y-12">
 
-        {% if activities %}
-        <table class="min-w-full table-auto text-sm mb-6">
+      <!-- Show activity list -->
+      <section>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl font-semibold">My Activity List</h2>
+          <form method="GET" class="flex items-center space-x-2">
+            <input type="hidden" name="page" value="1">
+            <label for="limit" class="text-sm font-medium text-gray-700">Show</label>
+            <select name="limit" id="limit" class="border rounded px-2 py-1 text-sm"
+              onchange="this.form.submit()">
+              <option value="10" {% if limit == 10 %}selected{% endif %}>10</option>
+              <option value="20" {% if limit == 20 %}selected{% endif %}>20</option>
+            </select>
+          </form>
+        </div>
+
+        <form id="activity-form" method="POST" action="{{ url_for('share') }}">
+          <input type="hidden" name="action" id="form-action">
+          
+          <table class="min-w-full table-auto text-sm mb-4">
             <thead>
-            <tr class="text-left bg-gray-100">
+              <tr class="text-left bg-gray-100">
+                <th class="px-4 py-2"><input type="checkbox" id="select-all"></th>
                 <th class="px-4 py-2">Type</th>
                 <th class="px-4 py-2">Duration</th>
                 <th class="px-4 py-2">Calories</th>
                 <th class="px-4 py-2">Date</th>
-                <th class="px-4 py-2">Share With</th>
-            </tr>
+              </tr>
             </thead>
             <tbody>
-            {% for a in activities %}
-            <tr class="border-b">
+              {% for a in activities %}
+              <tr class="border-b hover:bg-orange-50">
+                <td class="px-4 py-2">
+                  <input type="checkbox" name="selected_ids" value="{{ a.id }}" class="row-checkbox">
+                </td>
                 <td class="px-4 py-2">{{ a.activity_type.title() }}</td>
                 <td class="px-4 py-2">{{ a.activity_length }}</td>
                 <td class="px-4 py-2">{{ a.calories_burned }} kcal</td>
                 <td class="px-4 py-2">{{ a.activity_date }}</td>
-                <td class="px-4 py-2">
-                <form method="POST" action="{{ url_for('share') }}" class="flex space-x-2">
-                    <input type="hidden" name="upload_time" value="{{ a.upload_time.isoformat() }}">
-                    <input type="email" name="share_email" required placeholder="email"
-                        class="border border-gray-300 rounded p-1 text-sm">
-                    <button type="submit"
-                            class="bg-orange-500 text-white px-2 py-1 rounded hover:bg-orange-600 text-sm">
-                    Share
-                    </button>
-                </form>
-                </td>
-            </tr>
-            {% endfor %}
+              </tr>
+              {% endfor %}
             </tbody>
-        </table>
-        {% else %}
-        <p class="text-gray-600">You haven't uploaded any activity to share yet.</p>
-        {% endif %}
-    </div>     
+          </table>
+          {% set total_pages = (total_items // limit) + (1 if total_items % limit > 0 else 0) %}
+          <div class="flex justify-end items-center mt-4 space-x-2">
+            {% if page > 1 %}
+            <a href="{{ url_for('share', page=page-1, limit=limit) }}"
+              class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">← Prev</a>
+            {% endif %}
+
+            {% if page < total_pages %}
+            <a href="{{ url_for('share', page=page+1, limit=limit) }}"
+              class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">Next →</a>
+            {% endif %}
+          </div>
+
+
+          <div class="flex justify-end space-x-2">
+            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              onclick="setActionAndSubmit('delete')">
+              Delete Selected
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Share block -->
+      <section>
+        <h3 class="text-xl font-semibold mb-2">Share Selected Activities</h3>
+        <form method="POST" action="{{ url_for('share') }}" onsubmit="return collectShareIds()">
+          <input type="hidden" name="action" value="share">
+          <input type="hidden" id="share-ids" name="share_ids">
+
+          <div class="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <input type="email" name="share_email" placeholder="Enter email to share with"
+              class="border border-gray-300 rounded p-2 w-full sm:w-96" required>
+            <button type="submit"
+              class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">Share</button>
+          </div>
+        </form>
+      </section>
+
+    </div>
   </main>
 </div>
 
-
-
-
+<script src="{{ url_for('static', filename='script/share.js') }}"></script>
 
 
 {% endblock %}
