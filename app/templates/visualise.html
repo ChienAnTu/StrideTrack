@@ -7,15 +7,8 @@
     <!-- main body -->
     <div class="pt-20 max-w-5xl mx-auto px-4 space-y-8">
       <h2 class="text-2xl font-semibold mb-4">Your Activity Progress</h2>
-
-      <div class="bg-white p-6 rounded-xl shadow-md">
-        <h3 class="text-xl font-bold mb-4">Time Spent on Each Activity</h3>
-      
-        <!-- 👇 Center the chart and restrict its size -->
-        <div class="flex justify-center">
-          <canvas id="activityProgressChart" width="280" height="280"></canvas>
-        </div>
-      </div>
+      <form method="get" class="mb-6 flex flex-wrap items-center gap-4">
+    <label class="text-sm font-semibold">Filter by:</label>
   </main>
 
 
@@ -24,61 +17,6 @@
 
 <script id="activity-data" type="application/json">
   {{ activities | tojson | safe }}
-</script>
-<script>
-  const rawData = JSON.parse(document.getElementById('activity-data').textContent);
-
-  const activityData = {};
-  
-  rawData.forEach(a => {
-    const [h, m, s] = a.activity_length.split(':').map(Number);
-    const duration = h * 60 + m + s / 60;
-
-    if (!activityData[a.activity_type]) {
-      activityData[a.activity_type] = { calories: 0, duration: 0 };
-    }
-
-    activityData[a.activity_type].calories += a.calories_burned;
-    activityData[a.activity_type].duration += duration;
-  });
-
-  const labels = Object.keys(activityData);
-  const data = labels.map(label => activityData[label].calories);
-  const durations = labels.map(label => activityData[label].duration.toFixed(1));
-
-  const backgroundColors = [
-    '#00cfe8', '#ff9f43', '#28c76f', '#ea5455', '#7367f0', '#ff6f91'
-  ];
-
-  const ctx = document.getElementById('activityProgressChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'polarArea',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Calories Burned',
-        data: data,
-        backgroundColor: backgroundColors.slice(0, labels.length),
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom'
-        },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const i = context.dataIndex;
-              return `${labels[i]}: ${data[i]} cal, ${durations[i]} min`;
-            }
-          }
-        }
-      }
-    }
-  });
 </script>
 
 

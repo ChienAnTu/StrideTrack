@@ -117,9 +117,47 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
-      <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28">Metric 1</div>
-      <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28">Metric 2</div>
+      <div class="flex flex-col items-center justify-center h-72 mb-4 rounded-sm bg-white shadow-sm p-4">
+        <h3 class="text-md font-bold mb-2">Weekly Progress (Calories Burned)</h3>
+        <canvas id="weeklyLineChart" class="w-full max-w-2xl h-full"></canvas>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm mt-8">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-xl font-bold">Activity Overview</h3>
+
+          <!-- Dropdown filter inside card -->
+          <form method="get" class="flex items-center gap-2">
+            <label for="filter" class="text-sm font-medium">View:</label>
+            <select name="range" id="filter" class="border px-3 py-1 rounded text-sm">
+              <option value="daily" {% if request.args.get('range')=='daily' %}selected{% endif %}>Daily</option>
+              <option value="weekly" {% if request.args.get('range')=='weekly' %}selected{% endif %}>Weekly</option>
+              <option value="monthly" {% if request.args.get('range')=='monthly' %}selected{% endif %}>Monthly</option>
+            </select>
+            <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Apply</button>
+          </form>
+        </div>
+
+        <!-- Show date range summary -->
+        {% if activities %}
+        <p class="text-sm text-gray-600 mb-2">
+          Showing data from <strong>{{ start.strftime('%b %d, %Y') }}</strong>
+          to <strong>{{ end.strftime('%b %d, %Y') }}</strong>
+        </p>
+
+
+        {% else %}
+        <p class="text-sm text-gray-600 mb-2">No activity data for the selected period.</p>
+        {% endif %}
+
+        <!-- Bar chart -->
+        <canvas id="activityBarChart" class="w-full max-w-3xl mx-auto"></canvas>
+      </div>
+
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28">Metric 1</div>
+        <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28">Metric 2</div>
+      </div>
     </div>
 </div>
 </main>
@@ -132,6 +170,10 @@
 <!-- Pass backend data to frontend -->
 <script id="weekly-data" type="application/json">
   {{ weekly | tojson | safe }}
+</script>
+
+<script id="activity-data" type="application/json">
+  {{ activities | tojson | safe }}
 </script>
 
 <script>

@@ -8,7 +8,9 @@ from app.services.activity_service import (
     get_shared_activities_with_user,
     get_user_activities,
     get_latest_activity_entry,
-    get_weekly_calories_summary
+    get_weekly_calories_summary,
+    get_global_leaderboard,
+    get_shared_activity_summary_by_type
 )
 
 
@@ -22,23 +24,57 @@ def register_routes(app):
     @app.route('/dashboard')
     @login_required
     def dashboard():
+        # Get optional GET params
         week_start_str = request.args.get('week_start')
         goal_str = request.args.get('goal')
+        range_type = request.args.get('range', 'weekly')  # default to 'weekly'
 
-        # define start day
-        if week_start_str:
-            try:
-                start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
-            except:
-                start = date.today() - timedelta(days=date.today().weekday())
-        else:
-            start = date.today() - timedelta(days=date.today().weekday())  # 本週週一
+        # Determine current day
+        today = date.today()
 
-        # goal value
+        # Determine the date range for activity filtering
+        if range_type == 'daily':
+            start = end = today
+        elif range_type == 'monthly':
+            start = today.replace(day=1)
+            # Set end to last day of the current month
+            if start.month == 12:
+                end = date(start.year + 1, 1, 1) - timedelta(days=1)
+            else:
+                end = date(start.year, start.month + 1, 1) - timedelta(days=1)
+        else:  # weekly default
+            if week_start_str:
+                try:
+                    start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+                except ValueError:
+                    start = today - timedelta(days=today.weekday())
+            else:
+                start = today - timedelta(days=today.weekday())
+            end = start + timedelta(days=6)
+
+        # Filtered activities (for bar chart)
+        activities = ActivityRegistry.query.filter(
+        ActivityRegistry.upload_user_id == current_user.id,
+        ActivityRegistry.activity_date.between(start, end)
+        ).order_by(ActivityRegistry.activity_date.asc()).all()
+
+
+        activities_data = [
+            {
+                "activity_type": a.activity_type,
+                "activity_length": str(a.activity_length),
+                "activity_date": a.activity_date.strftime('%Y-%m-%d'),
+                "calories_burned": a.calories_burned
+            }
+            for a in activities
+        ]
+
+        # Weekly summary used for donut + line chart (always based on week_start)
+        weekly_summary_start = start if range_type == 'weekly' else today - timedelta(days=today.weekday())
         goal = int(goal_str) if goal_str and goal_str.isdigit() else 300
+        weekly = get_weekly_calories_summary(current_user.id, weekly_summary_start, goal)
 
         latest = get_latest_activity_entry(current_user.id)
-        weekly = get_weekly_calories_summary(current_user.id, start, goal)
 
         return render_template(
             'dashboard.html',
@@ -47,10 +83,12 @@ def register_routes(app):
             calories=latest["calories"],
             activity=latest["activity"],
             duration=latest["duration"],
+            activities=activities_data,
             weekly=weekly,
-            timedelta=timedelta
+            timedelta=timedelta,
+            start=start,
+            end=end
         )
-
 
     @app.route('/challenges')
     def challenges():
@@ -64,9 +102,8 @@ def register_routes(app):
     @login_required
     def calories():
         if request.method == 'POST':
-            # Check if the POST is csv_file or manual
+            # ===== CSV Upload =====
             if 'csv_files' in request.files:
-                # ---------- CSV Upload Logic ----------
                 uploaded_files = request.files.getlist("csv_files")
                 total_success, total_failed = 0, 0
 
@@ -80,7 +117,7 @@ def register_routes(app):
                         reader = csv.DictReader(io.StringIO(content))
 
                         for row in reader:
-                            try:                                
+                            try:
                                 activity_date = datetime.strptime(row['activity_date'], '%d/%m/%Y').date()
                                 duration_minutes = float(row['duration_minutes'])
                                 activity_length = (datetime.min + timedelta(minutes=duration_minutes)).time()
@@ -97,11 +134,7 @@ def register_routes(app):
                                     calories_burned=calories_burned,
                                     distance_m=float(row['distance_m']) if row.get('distance_m') else None,
                                     weight_kg=weight,
-                                    # TODO: Delete below useless column
-                                    average_speed_mps=float(row['average_speed_mps']) if row.get('average_speed_mps') else None,
-                                    max_speed_mps=float(row['max_speed_mps']) if row.get('max_speed_mps') else None,
-                                    start_lat=row.get('start_lat'),
-                                    end_lat=row.get('end_lat')
+                                    trail_name=row.get('trail_name')  # <== 新增支援 trail_name
                                 )
 
                                 db.session.add(new_entry)
@@ -119,30 +152,24 @@ def register_routes(app):
                 flash(f"Uploaded {total_success} rows. Failed: {total_failed}", "info")
                 return redirect(url_for('calories'))
 
+            # ===== Manual or Trail form =====
             else:
                 try:
-            # ---------- Manual Form Entry ----------
-                    # Required columns
                     activity = request.form['activity'].lower()
                     duration = float(request.form['duration'])
                     weight = float(request.form['weight'])
 
-                    # factors
                     met_values = {
                         "walking": 3.5, "running": 8.3, "cycling": 6.0,
                         "hiking": 6.0, "swimming": 5.8, "yoga": 2.5
                     }
 
-                    met = met_values.get(activity, 3.5)  # fallback: walking
+                    met = met_values.get(activity, 3.5)
                     calories_burned = round(duration * met * weight * 0.0175, 2)
                     activity_length = (datetime.min + timedelta(minutes=duration)).time()
 
-                    # Nullable columns
                     distance_m = request.form.get('distance_m') or None
-                    # average_speed_mps = request.form.get('average_speed_mps') or None
-                    # max_speed_mps = request.form.get('max_speed_mps') or None
-                    # start_lat = request.form.get('start_lat') or None
-                    # end_lat = request.form.get('end_lat') or None
+                    trail_name = request.form.get('trail_name') or None  # <== 新增支援 trail_name
 
                     new_entry = ActivityRegistry(
                         upload_user_id=current_user.id,
@@ -152,17 +179,14 @@ def register_routes(app):
                         activity_length=activity_length,
                         calories_burned=calories_burned,
                         weight_kg=weight,
-                        distance_m=float(distance_m) if distance_m else None
-                        # average_speed_mps=float(average_speed_mps) if average_speed_mps else None,
-                        # max_speed_mps=float(max_speed_mps) if max_speed_mps else None,
-                        # start_lat=start_lat,
-                        # end_lat=end_lat
+                        distance_m=float(distance_m) if distance_m else None,
+                        trail_name=trail_name  # <== 寫入資料庫
                     )
 
                     db.session.add(new_entry)
                     db.session.commit()
 
-                    # Data showed on dashboard TODO: -> modify here
+                    # 傳遞給 dashboard 使用
                     session['calories_burned'] = calories_burned
                     session['selected_activity'] = activity.title()
                     session['duration'] = duration
@@ -173,6 +197,7 @@ def register_routes(app):
                     flash(f"Failed to save entry: {e}", "error")
                     return redirect(url_for('calories'))
 
+        # ===== GET request =====
         return render_template(
             'calories.html',
             title="Calorie Calculator",
@@ -181,12 +206,19 @@ def register_routes(app):
             duration=session.get('duration'),
             user=current_user
         )
+
     
     @app.route('/register', methods=['POST'])
     def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
+        confirm_password = request.form.get('confirmPassword')
+
+        if password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return redirect(url_for('index'))
+
 
         # Check if user exists
         if User.query.filter_by(email=email).first():
@@ -219,15 +251,66 @@ def register_routes(app):
     @app.route('/visualise')
     @login_required
     def visualise():
+        day_str = request.args.get('day')
+        week_str = request.args.get('week')
+
         activities = get_user_activities(current_user.id)
+
+        if day_str:
+            try:
+                selected_day = datetime.strptime(day_str, "%Y-%m-%d").date()
+                activities = [a for a in activities if a["activity_date"] == selected_day.strftime("%Y-%m-%d")]
+            except:
+                flash("Invalid date format", "error")
+
+        elif week_str:
+            try:
+                year, week_num = map(int, week_str.split("-W"))
+                week_start = datetime.strptime(f'{year}-W{week_num}-1', "%Y-W%W-%w").date()
+                week_end = week_start + timedelta(days=6)
+
+                activities = [
+                    a for a in activities
+                    if week_start.strftime("%Y-%m-%d") <= a["activity_date"] <= week_end.strftime("%Y-%m-%d")
+                ]
+            except:
+                flash("Invalid week format", "error")
+
         return render_template("visualise.html", activities=activities)
+
+
    
     # -------------Share data view--------------
     @app.route('/shared_with_me')
     @login_required
     def shared_with_me():
-        shared_data = get_shared_activities_with_user(current_user.email)
-        return render_template("shared_with_me.html", shared_data=shared_data)
+        limit = request.args.get("limit", default=10, type=int)
+        page = request.args.get("page", default=1, type=int)
+
+        all_shared = get_shared_activities_with_user(current_user.email)
+        all_shared_sorted = sorted(
+            all_shared,
+            key=lambda x: (x["activity_date"], x["upload_time"]),
+            reverse=True
+        )                                                   
+
+        total_items = len(all_shared_sorted)
+        start = (page - 1) * limit
+        end = start + limit
+        shared_data = all_shared_sorted[start:end]
+
+        leaderboard = get_global_leaderboard()
+        shared_summary = get_shared_activity_summary_by_type(current_user.email)
+
+        return render_template(
+            "shared_with_me.html",
+            shared_data=shared_data,
+            leaderboard=leaderboard,
+            shared_summary=shared_summary,
+            limit=limit,
+            page=page,
+            total_items=total_items
+        )
 
 
     @app.route('/share', methods=['GET', 'POST'])
@@ -295,19 +378,28 @@ def register_routes(app):
 
                 return redirect(url_for('share'))
 
-        # GET: Show limited list: support {?limit=10 or 20}
+        # GET: Pagination
         limit = request.args.get("limit", default=10, type=int)
-        activities = ActivityRegistry.query \
-            .filter_by(upload_user_id=current_user.id) \
-            .order_by(ActivityRegistry.activity_date.desc()) \
-            .limit(limit).all()
+        page = request.args.get("page", default=1, type=int)
+        offset = (page - 1) * limit
 
-        return render_template("share.html", activities=activities)
+        query = ActivityRegistry.query \
+            .filter_by(upload_user_id=current_user.id) \
+            .order_by(ActivityRegistry.activity_date.desc(),
+                      ActivityRegistry.upload_time.desc()
+                      )
+
+        total_items = query.count()
+        activities = query.offset(offset).limit(limit).all()
+
+
+        # return render_template("share.html", activities=activities)
+        return render_template("share.html", activities=activities, limit=limit, page=page, total_items=total_items)
+
 
 
     @app.route('/logout')
     def logout():
-        # session.clear()
         logout_user()
         flash('You have been logged out.')
         return redirect(url_for('index'))

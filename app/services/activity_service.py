@@ -1,12 +1,23 @@
 from app.models import ActivityRegistry, SharedActivity, User
+from app.database import db
 from sqlalchemy import func
 from datetime import date, timedelta, datetime
 from flask_login import current_user
 
 
+from collections import defaultdict
+from datetime import timedelta
+
 def get_weekly_calories_summary(user_id: int, start_date: date, goal: int = 300):
     end_date = start_date + timedelta(days=6)
 
+    # Initialize all 7 days with 0
+    summary = {}
+    for i in range(7):
+        d = start_date + timedelta(days=i)
+        summary[d.strftime("%Y-%m-%d")] = 0.0
+
+    # Query summed calories per day
     raw_data = (
         ActivityRegistry.query
         .with_entities(ActivityRegistry.activity_date, func.sum(ActivityRegistry.calories_burned))
@@ -18,10 +29,9 @@ def get_weekly_calories_summary(user_id: int, start_date: date, goal: int = 300)
         .all()
     )
 
-    summary = {}
     for activity_date, total in raw_data:
-        weekday = activity_date.strftime("%Y-%m-%d")  # e.g., Mon, Tue
-        summary[weekday] = round(total, 2)
+        key = activity_date.strftime("%Y-%m-%d")
+        summary[key] = round(total, 2)
 
     return {
         "goal": goal,
@@ -40,9 +50,12 @@ def get_shared_activities_with_user(user_email: str):
         sharing_user = User.query.get(share.sharing_user_id)
         if activity:
             shared_data.append({
+                "activity_date": activity.activity_date.strftime('%Y-%m-%d'),
+                "upload_time": activity.upload_time,
                 "activity_type": activity.activity_type.title(),
                 "activity_length": activity.activity_length,
-                "activity_date": activity.activity_date.strftime('%Y-%m-%d'),
+                "distance_m": activity.distance_m or '-',
+                "trail_name": activity.trail_name or '-',
                 "calories_burned": activity.calories_burned,
                 "shared_by": sharing_user.email if sharing_user else "Unknown"
             })
@@ -87,3 +100,38 @@ def get_latest_activity_entry(user_id: int):
         "calories": round(record.calories_burned, 2),
         "duration": round(duration_minutes)
     }
+
+def get_global_leaderboard():
+    results = (
+        db.session.query(User.username, func.sum(ActivityRegistry.calories_burned).label("total_calories"))
+        .join(ActivityRegistry, User.id == ActivityRegistry.upload_user_id)
+        .group_by(User.username)
+        .order_by(func.sum(ActivityRegistry.calories_burned).desc())
+        .all()
+    )
+    return [{"username": row.username, "calories": round(row.total_calories, 2)} for row in results]
+
+
+def get_shared_activity_summary_by_type(user_email: str):
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())  # 本週一
+    week_end = week_start + timedelta(days=6)
+
+    shares = (
+        db.session.query(ActivityRegistry.activity_type, ActivityRegistry.activity_length)
+        .join(SharedActivity, SharedActivity.activity_id == ActivityRegistry.id)
+        .filter(
+            SharedActivity.user_shared_with == user_email,
+            ActivityRegistry.activity_date.between(week_start, week_end)
+        )
+        .all()
+    )
+
+    from collections import defaultdict
+    summary = defaultdict(float)
+
+    for activity_type, duration in shares:
+        minutes = duration.hour * 60 + duration.minute + duration.second / 60
+        summary[activity_type.title()] += minutes
+
+    return dict(summary)
