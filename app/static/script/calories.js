@@ -145,7 +145,7 @@ const trails = {
     difficulty: "Easy",
     description: "Gentle loop through wildflower meadows, perfect for families."
   }
-  // 👉 若有其他 trail 可繼續擴充
+  // Keep adding trail here--->
 };
 
 // Initialize map
