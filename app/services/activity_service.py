@@ -1,4 +1,5 @@
 from app.models import ActivityRegistry, SharedActivity, User
+from app.database import db
 from sqlalchemy import func
 from datetime import date, timedelta, datetime
 from flask_login import current_user
@@ -96,3 +97,38 @@ def get_latest_activity_entry(user_id: int):
         "calories": round(record.calories_burned, 2),
         "duration": round(duration_minutes)
     }
+
+def get_global_leaderboard():
+    results = (
+        db.session.query(User.username, func.sum(ActivityRegistry.calories_burned).label("total_calories"))
+        .join(ActivityRegistry, User.id == ActivityRegistry.upload_user_id)
+        .group_by(User.username)
+        .order_by(func.sum(ActivityRegistry.calories_burned).desc())
+        .all()
+    )
+    return [{"username": row.username, "calories": round(row.total_calories, 2)} for row in results]
+
+
+def get_shared_activity_summary_by_type(user_email: str):
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())  # 本週一
+    week_end = week_start + timedelta(days=6)
+
+    shares = (
+        db.session.query(ActivityRegistry.activity_type, ActivityRegistry.activity_length)
+        .join(SharedActivity, SharedActivity.activity_id == ActivityRegistry.id)
+        .filter(
+            SharedActivity.user_shared_with == user_email,
+            ActivityRegistry.activity_date.between(week_start, week_end)
+        )
+        .all()
+    )
+
+    from collections import defaultdict
+    summary = defaultdict(float)
+
+    for activity_type, duration in shares:
+        minutes = duration.hour * 60 + duration.minute + duration.second / 60
+        summary[activity_type.title()] += minutes
+
+    return dict(summary)

@@ -8,7 +8,9 @@ from app.services.activity_service import (
     get_shared_activities_with_user,
     get_user_activities,
     get_latest_activity_entry,
-    get_weekly_calories_summary
+    get_weekly_calories_summary,
+    get_global_leaderboard,
+    get_shared_activity_summary_by_type
 )
 
 
@@ -288,8 +290,29 @@ def register_routes(app):
     @app.route('/shared_with_me')
     @login_required
     def shared_with_me():
-        shared_data = get_shared_activities_with_user(current_user.email)
-        return render_template("shared_with_me.html", shared_data=shared_data)
+        limit = request.args.get("limit", default=10, type=int)
+        page = request.args.get("page", default=1, type=int)
+
+        all_shared = get_shared_activities_with_user(current_user.email)
+        all_shared_sorted = sorted(all_shared, key=lambda x: x["activity_date"], reverse=True)
+
+        total_items = len(all_shared_sorted)
+        start = (page - 1) * limit
+        end = start + limit
+        shared_data = all_shared_sorted[start:end]
+
+        leaderboard = get_global_leaderboard()
+        shared_summary = get_shared_activity_summary_by_type(current_user.email)
+
+        return render_template(
+            "shared_with_me.html",
+            shared_data=shared_data,
+            leaderboard=leaderboard,
+            shared_summary=shared_summary,
+            limit=limit,
+            page=page,
+            total_items=total_items
+        )
 
 
     @app.route('/share', methods=['GET', 'POST'])
@@ -357,19 +380,26 @@ def register_routes(app):
 
                 return redirect(url_for('share'))
 
-        # GET: Show limited list: support {?limit=10 or 20}
+        # GET: Pagination
         limit = request.args.get("limit", default=10, type=int)
-        activities = ActivityRegistry.query \
-            .filter_by(upload_user_id=current_user.id) \
-            .order_by(ActivityRegistry.activity_date.desc()) \
-            .limit(limit).all()
+        page = request.args.get("page", default=1, type=int)
+        offset = (page - 1) * limit
 
-        return render_template("share.html", activities=activities)
+        query = ActivityRegistry.query \
+            .filter_by(upload_user_id=current_user.id) \
+            .order_by(ActivityRegistry.activity_date.desc())
+
+        total_items = query.count()
+        activities = query.offset(offset).limit(limit).all()
+
+
+        # return render_template("share.html", activities=activities)
+        return render_template("share.html", activities=activities, limit=limit, page=page, total_items=total_items)
+
 
 
     @app.route('/logout')
     def logout():
-        # session.clear()
         logout_user()
         flash('You have been logged out.')
         return redirect(url_for('index'))
