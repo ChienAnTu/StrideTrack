@@ -65,6 +65,8 @@
       <div id="trail-card" class="hidden">
         <h2 class="text-2xl font-semibold mb-4">Upload by Trail</h2>
         <form method="POST" action="/calories" class="space-y-4 bg-gray-100 p-6 rounded-lg shadow-sm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
           <!-- Activity Filter -->
           <select id="activity-select" name="trail_activity" class="w-full border p-2 mb-4">
             <option value="all">All Activities</option>
