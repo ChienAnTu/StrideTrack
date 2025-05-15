@@ -93,7 +93,11 @@
         <!-- Shared Activity Summary Pie Chart -->
         <div class="bg-white p-6 rounded-xl shadow-md">
           <h2 class="text-xl font-bold mb-4">Shared Activity Breakdown (This Week)</h2>
-          <canvas id="sharedPieChart" height="200"></canvas>
+          <div class="w-full flex justify-center">
+            <div class="w-full max-w-[400px] aspect-square">
+              <canvas id="sharedPieChart" width="300" height="200" class="max-w-[300px]"></canvas>
+            </div>
+          </div>
         </div>
 
         {% else %}
