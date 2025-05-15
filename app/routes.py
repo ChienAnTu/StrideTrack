@@ -2,7 +2,11 @@ from flask import render_template, request, redirect, url_for, session, flash, j
 from app.models import User, db, ActivityRegistry, SharedActivity
 from datetime import datetime, timedelta, date
 from flask_login import login_user, logout_user, login_required, current_user
-import io, csv
+import io, csv, requests, random
+
+
+NUTRITIONIX_APP_ID = 'cec891fa'
+NUTRITIONIX_APP_KEY = 'aa30c7d890c2a54130cb856746b41484'
 
 from app.services.activity_service import (
     get_shared_activities_with_user,
@@ -404,27 +408,117 @@ def register_routes(app):
         flash('You have been logged out.')
         return redirect(url_for('index'))
 
+    def query_nutritionix(calories):
+        try:
+            # Determine food type based on calorie burn
+            if calories < 300:
+                food_type = "healthy snack"
+                portion = "small"
+                calorie_range = f"{max(50, int(calories*0.2))}-{int(calories*0.3)} calorie"
+            elif calories < 600:
+                food_type = "light meal"
+                portion = "medium"
+                calorie_range = f"{int(calories*0.3)}-{int(calories*0.4)} calorie"
+            else:
+                food_type = "recovery meal"
+                portion = "large"
+                calorie_range = f"{int(calories*0.4)}-{int(calories*0.5)} calorie"
+
+            # First try specific calorie range search
+            url = "https://trackapi.nutritionix.com/v2/search/instant"
+            headers = {
+                'x-app-id': NUTRITIONIX_APP_ID,
+                'x-app-key': NUTRITIONIX_APP_KEY
+            }
+            params = {
+                "query": f"{calorie_range} {food_type}",
+                "branded": True,
+                "common": True
+            }
+            
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            results = response.json()
+            
+            # Process results
+            common_foods = results.get("common", [])
+            branded_foods = results.get("branded", [])
+            all_foods = common_foods + branded_foods
+            unique_foods = {f['food_name']: f for f in all_foods}.values()
+            
+            if unique_foods:
+                suggestions = [f['food_name'].title() for f in list(unique_foods)[:3]]
+                return f"After burning {calories} calories, try this {portion} {food_type}: " + ", or ".join(suggestions)
+            
+            # Fallback to general category search
+            params["query"] = food_type
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            results = response.json()
+            
+            common_foods = results.get("common", [])
+            if common_foods:
+                suggestions = [f['food_name'].title() for f in common_foods[:3]]
+                return f"After burning {calories} kcalories, try this {portion} {food_type}: " + ", or ".join(suggestions)
+            
+            # Final fallback with appropriate suggestions
+            fallback_options = {
+                "healthy snack": [
+                    "a banana with almond butter",
+                    "Greek yogurt with berries",
+                    "a handful of mixed nuts"
+                ],
+                "light meal": [
+                    "a chicken salad wrap",
+                    "quinoa bowl with vegetables",
+                    "tuna on whole grain crackers"
+                ],
+                "recovery meal": [
+                    "grilled salmon with sweet potato",
+                    "chicken stir-fry with brown rice",
+                    "lean beef burger with avocado"
+                ]
+            }
+            return f"After burning {calories} calories, consider {random.choice(fallback_options[food_type])}"
+            
+        except requests.exceptions.HTTPError as e:
+            print(f"Nutritionix API HTTP error: {e}")
+        except requests.exceptions.RequestException as e:
+            print(f"Nutritionix API request failed: {e}")
+        
+        # Default return if API fails
+        fallback = [
+            "a balanced meal with protein and complex carbs",
+            "a recovery smoothie with protein powder",
+            "lean protein with vegetables and whole grains"
+        ]
+        return f"After burning {calories} calories, have {random.choice(fallback)}"
+        
+    def get_hydration_recommendation(calories_burned):
+        # Calculate additional water needs (beyond normal daily intake)
+        additional_ml = min(1000, calories_burned / 3)  # Max 1000ml additional
+            
+            # Round to practical amounts
+        if additional_ml < 300:
+            return "No additional water needed beyond your normal intake"
+        elif additional_ml < 500:
+            return "Drink an additional 2L water today"
+        else:
+            return "Drink an additional 4L water today"
+
     @app.route('/api/nutrition-suggestion')
     def nutrition_suggestion():
         try:
             calories = request.args.get('calories', default=0, type=int)
+            suggestion = query_nutritionix(calories)
             
-            # Base suggestions
-            if calories < 300:
-                suggestion = "Light snack: Banana (105 kcal) + handful of almonds (160 kcal)"
-            elif 300 <= calories < 600:
-                suggestion = "Greek yogurt (150 kcal) + granola (200 kcal) + berries (50 kcal)"
-            else:
-                suggestion = "Grilled chicken (300 kcal) + quinoa (220 kcal) + roasted veggies (150 kcal)"
-            
-            # Add personalized touch if user is logged in
             if current_user.is_authenticated:
-                suggestion = f"Hey {current_user.username}, try this: " + suggestion
+                suggestion = f"Hey {current_user.username}, {suggestion.lower()}"
             
             return jsonify({
                 'suggestion': suggestion,
-                'hydration': f"Drink {round(calories/40)}ml water"
+                'hydration': get_hydration_recommendation(calories)
             })
-            
+
         except Exception as e:
             return jsonify({'error': str(e)}), 500
