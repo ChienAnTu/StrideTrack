@@ -5,9 +5,19 @@ from datetime import date, timedelta, datetime
 from flask_login import current_user
 
 
+from collections import defaultdict
+from datetime import timedelta
+
 def get_weekly_calories_summary(user_id: int, start_date: date, goal: int = 300):
     end_date = start_date + timedelta(days=6)
 
+    # Initialize all 7 days with 0
+    summary = {}
+    for i in range(7):
+        d = start_date + timedelta(days=i)
+        summary[d.strftime("%Y-%m-%d")] = 0.0
+
+    # Query summed calories per day
     raw_data = (
         ActivityRegistry.query
         .with_entities(ActivityRegistry.activity_date, func.sum(ActivityRegistry.calories_burned))
@@ -19,10 +29,9 @@ def get_weekly_calories_summary(user_id: int, start_date: date, goal: int = 300)
         .all()
     )
 
-    summary = {}
     for activity_date, total in raw_data:
-        weekday = activity_date.strftime("%Y-%m-%d")  # e.g., Mon, Tue
-        summary[weekday] = round(total, 2)
+        key = activity_date.strftime("%Y-%m-%d")
+        summary[key] = round(total, 2)
 
     return {
         "goal": goal,

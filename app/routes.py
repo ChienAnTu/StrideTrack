@@ -24,23 +24,57 @@ def register_routes(app):
     @app.route('/dashboard')
     @login_required
     def dashboard():
+        # Get optional GET params
         week_start_str = request.args.get('week_start')
         goal_str = request.args.get('goal')
+        range_type = request.args.get('range', 'weekly')  # default to 'weekly'
 
-        # define start day
-        if week_start_str:
-            try:
-                start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
-            except:
-                start = date.today() - timedelta(days=date.today().weekday())
-        else:
-            start = date.today() - timedelta(days=date.today().weekday())  # 本週週一
+        # Determine current day
+        today = date.today()
 
-        # goal value
+        # Determine the date range for activity filtering
+        if range_type == 'daily':
+            start = end = today
+        elif range_type == 'monthly':
+            start = today.replace(day=1)
+            # Set end to last day of the current month
+            if start.month == 12:
+                end = date(start.year + 1, 1, 1) - timedelta(days=1)
+            else:
+                end = date(start.year, start.month + 1, 1) - timedelta(days=1)
+        else:  # weekly default
+            if week_start_str:
+                try:
+                    start = datetime.strptime(week_start_str, "%Y-%m-%d").date()
+                except ValueError:
+                    start = today - timedelta(days=today.weekday())
+            else:
+                start = today - timedelta(days=today.weekday())
+            end = start + timedelta(days=6)
+
+        # Filtered activities (for bar chart)
+        activities = ActivityRegistry.query.filter(
+        ActivityRegistry.upload_user_id == current_user.id,
+        ActivityRegistry.activity_date.between(start, end)
+        ).order_by(ActivityRegistry.activity_date.asc()).all()
+
+
+        activities_data = [
+            {
+                "activity_type": a.activity_type,
+                "activity_length": str(a.activity_length),
+                "activity_date": a.activity_date.strftime('%Y-%m-%d'),
+                "calories_burned": a.calories_burned
+            }
+            for a in activities
+        ]
+
+        # Weekly summary used for donut + line chart (always based on week_start)
+        weekly_summary_start = start if range_type == 'weekly' else today - timedelta(days=today.weekday())
         goal = int(goal_str) if goal_str and goal_str.isdigit() else 300
+        weekly = get_weekly_calories_summary(current_user.id, weekly_summary_start, goal)
 
         latest = get_latest_activity_entry(current_user.id)
-        weekly = get_weekly_calories_summary(current_user.id, start, goal)
 
         return render_template(
             'dashboard.html',
@@ -49,10 +83,12 @@ def register_routes(app):
             calories=latest["calories"],
             activity=latest["activity"],
             duration=latest["duration"],
+            activities=activities_data,
             weekly=weekly,
-            timedelta=timedelta
+            timedelta=timedelta,
+            start=start,
+            end=end
         )
-
 
     @app.route('/challenges')
     def challenges():
@@ -221,8 +257,34 @@ def register_routes(app):
     @app.route('/visualise')
     @login_required
     def visualise():
+        day_str = request.args.get('day')
+        week_str = request.args.get('week')
+
         activities = get_user_activities(current_user.id)
+
+        if day_str:
+            try:
+                selected_day = datetime.strptime(day_str, "%Y-%m-%d").date()
+                activities = [a for a in activities if a["activity_date"] == selected_day.strftime("%Y-%m-%d")]
+            except:
+                flash("Invalid date format", "error")
+
+        elif week_str:
+            try:
+                year, week_num = map(int, week_str.split("-W"))
+                week_start = datetime.strptime(f'{year}-W{week_num}-1', "%Y-W%W-%w").date()
+                week_end = week_start + timedelta(days=6)
+
+                activities = [
+                    a for a in activities
+                    if week_start.strftime("%Y-%m-%d") <= a["activity_date"] <= week_end.strftime("%Y-%m-%d")
+                ]
+            except:
+                flash("Invalid week format", "error")
+
         return render_template("visualise.html", activities=activities)
+
+
    
     # -------------Share data view--------------
     @app.route('/shared_with_me')
