@@ -11,6 +11,7 @@
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-2xl font-semibold">My Activity List</h2>
           <form method="GET" class="flex items-center space-x-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="page" value="1">
             <label for="limit" class="text-sm font-medium text-gray-700">Show</label>
             <select name="limit" id="limit" class="border rounded px-2 py-1 text-sm"
@@ -22,6 +23,7 @@
         </div>
 
         <form id="activity-form" method="POST" action="{{ url_for('share') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" id="form-action">
           
           <table class="min-w-full table-auto text-sm mb-4">
@@ -86,6 +88,7 @@
       <section>
         <h3 class="text-xl font-semibold mb-2">Share Selected Activities</h3>
         <form method="POST" action="{{ url_for('share') }}" onsubmit="return collectShareIds()">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="share">
           <input type="hidden" id="share-ids" name="share_ids">
 
