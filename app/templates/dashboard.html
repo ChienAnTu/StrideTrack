@@ -100,14 +100,22 @@
         </div>
         {% endfor %}
       </div>
-
-
-
-
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28">Sub Chart 1</div>
-        <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28">Sub Chart 2</div>
+      <div id="nutrition-suggestion"
+        class="mb-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200 hidden transition-opacity">
+        <div class="flex justify-between items-center">
+          <h3 class="font-bold text-yellow-800">🍏 Nutrition Pairing</h3>
+          <div>
+            <button id="refresh-nutrition" class="mr-2 px-2 py-1 text-xs bg-yellow-100 rounded-md">
+              🔄 Refresh
+            </button>
+            <button id="close-nutrition" class="text-yellow-600 hover:text-yellow-800">
+              ✕
+            </button>
+          </div>
+        </div>
+        <div id="nutrition-content" class="mt-2 text-sm"></div>
       </div>
+    </div>
 
       <div class="flex flex-col items-center justify-center h-72 mb-4 rounded-sm bg-white shadow-sm p-4">
         <h3 class="text-md font-bold mb-2">Weekly Progress (Calories Burned)</h3>
@@ -151,7 +159,8 @@
         <div class="flex items-center justify-center rounded-sm bg-gray-50 h-28">Metric 2</div>
       </div>
     </div>
-  </main>
+</div>
+</main>
 </div>
 
 <!-- Charts.js block -->
@@ -167,6 +176,66 @@
   {{ activities | tojson | safe }}
 </script>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Get calories from dashboard
+    const calories = parseInt('{{ calories | default(0) }}');
+
+    // Get DOM elements
+    const nutritionDiv = document.getElementById('nutrition-suggestion');
+    const closeButton = document.getElementById('close-nutrition');
+
+    // Auto-show if calories exist
+    if (calories > 0) {
+      fetchNutritionSuggestion(calories);
+    }
+
+    // Manual refresh button
+    document.getElementById('refresh-nutrition')?.addEventListener('click', () => {
+      fetchNutritionSuggestion(calories);
+    });
+
+    // Close button handler
+    closeButton.addEventListener('click', () => {
+      nutritionDiv.classList.add('hidden'); // No storage at all
+    });
+
+    // Always show when calories exist
+    if (parseInt('{{ calories | default(0) }}') > 0) {
+      nutritionDiv.classList.remove('hidden');
+    }
+    // AJAX function
+    async function fetchNutritionSuggestion(calories) {
+      // Check if user previously closed the panel
+      if (localStorage.getItem('hideNutrition') === 'true') {
+        return;
+      }
+
+      try {
+        nutritionDiv.classList.remove('hidden');
+        nutritionDiv.classList.add('opacity-50'); // Loading state
+
+        const response = await fetch(`/api/nutrition-suggestion?calories=${calories}`);
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+
+        document.getElementById('nutrition-content').innerHTML = `
+                  <p>${data.suggestion}</p>
+                  <p class="mt-2 text-yellow-600">💧 ${data.hydration}</p>
+              `;
+        nutritionDiv.classList.remove('opacity-50');
+
+      } catch (error) {
+        console.error("Nutrition error:", error);
+        document.getElementById('nutrition-content').innerHTML = `
+                  <p class="text-red-500">Couldn't load suggestions. Try again later.</p>
+              `;
+        nutritionDiv.classList.remove('opacity-50');
+      }
+    }
+  });
+</script>
 <!-- Link to dashboard_charts.js -->
 <script src="{{ url_for('static', filename='script/dashboard_charts.js') }}"></script>
 

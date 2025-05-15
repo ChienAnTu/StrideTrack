@@ -9,43 +9,7 @@
       <h2 class="text-2xl font-semibold mb-4">Your Activity Progress</h2>
       <form method="get" class="mb-6 flex flex-wrap items-center gap-4">
     <label class="text-sm font-semibold">Filter by:</label>
-
-    <!-- Day Picker -->
-    <input type="date" name="day" class="border p-2 rounded" value="{{ request.args.get('day', '') }}">
-
-    <!-- Week Picker -->
-    <input type="week" name="week" class="border p-2 rounded" value="{{ request.args.get('week', '') }}">
-
-    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Apply</button>
-
-    {% if request.args %}
-    <a href="{{ url_for('visualise') }}" class="text-sm text-red-500 ml-2">Clear</a>
-    {% endif %}
-  </form>
-
-
-      <!-- Bar Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-md">
-      <h3 class="text-xl font-bold mb-4">Time Spent on Each Activity</h3>
-      <div class="h-72 max-w-sm mx-auto">
-        <canvas id="activityTimeChart" class="max-h-full w-full"></canvas>
-      </div>
-    </div>
-
-    <!-- Pie Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-md mt-8">
-      <h3 class="text-xl font-bold mb-4">Time Spent Distribution</h3>
-      <div class="h-72 max-w-sm mx-auto">
-        <canvas id="activityPieChart" class="max-h-full w-full"></canvas>
-      </div>
-    </div>
-
-
   </main>
-</div>
-
-
-
 
 
 <!-- Chart.js -->
@@ -54,8 +18,6 @@
 <script id="activity-data" type="application/json">
   {{ activities | tojson | safe }}
 </script>
-
-<script src="{{ url_for('static', filename='script/visualise_charts.js') }}"></script>
 
 
 <!-- Pass JSON from Flask to JS -->
