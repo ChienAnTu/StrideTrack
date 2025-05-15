@@ -70,11 +70,4 @@ You can also run the `python3 run.py` command under the same directory of your t
 
 
 
-### 5. CSRF Protection
 
-This application uses **Flask-WTF's CSRF protection** to secure all form submissions.
-
-#### ✅ What you need to know:
-- CSRF tokens are automatically injected into all forms using:
-  ```html
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
