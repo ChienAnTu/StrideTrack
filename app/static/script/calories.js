@@ -127,6 +127,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Define trail data
 const trails = {
+  greenMount: {
+    name: "Green Mountain Trail",
+    gpx: "/static/trails/greenMount.gpx",
+    activity: "hiking",
+    distance_km: 5.2,
+    duration_min: 150,
+    difficulty: "Moderate",
+    description: "Scenic trail through dense forest with panoramic views at the summit."
+  },
   kingsPark: {
     name: "Kings Park",
     gpx: "/static/trails/kingsPark.gpx",
@@ -144,8 +153,61 @@ const trails = {
     duration_min: 90,
     difficulty: "Easy",
     description: "Gentle loop through wildflower meadows, perfect for families."
+  },
+  jamesOval: {
+    name: "James Oval",
+    gpx: "/static/trails/jamesOval.gpx",
+    activity: "yoga",
+    distance_km: 0,
+    duration_min: 60,
+    difficulty: "Easy",
+    description: "Free community yoga session every Wednesday at UWA."
+  },
+  bellsRapid: {
+    name: "Bells Rapid",
+    gpx: "/static/trails/bellsRapid.gpx",
+    activity: "hiking",
+    distance_km: 3.77,
+    duration_min: 120,
+    difficulty: "Hard",
+    description: "A challenging hike through the Bells Rapid area."
+  },
+  booyeembarraPark: {
+    name: "Booyeembara Park",
+    gpx: "/static/trails/booyeembaraPark.gpx",
+    activity: "walking",
+    distance_km: 1.09,
+    duration_min: 30,
+    difficulty: "Easy",
+    description: "A walk through the Booyeembara Park."
+  },
+  cottesloeBeach: {
+    name: "Cottesloe Beach",
+    gpx: "/static/trails/cottesloeBeach.gpx",
+    activity: "cycling",
+    distance_km: 14.41,
+    duration_min: 120,
+    difficulty: "Hard",
+    description: "A challenging ride along the Cottesloe Beach."
+  },
+  windanBridge: {
+    name: "Windan Bridge",
+    gpx: "/static/trails/windanBridge.gpx",
+    activity: "cycling",
+    distance_km: 5.19,
+    duration_min: 120,
+    difficulty: "Moderate",
+    description: "A scenic ride along the Windan Bridge loop."
+  },
+  beattyPark: {
+    name: "Beatty Park",
+    gpx: "/static/trails/beattyPark.gpx",
+    activity: "swimming",
+    distance_km: 0,
+    duration_min: 60,
+    difficulty: "Easy",
+    description: "Swimming lanes and pool activities at Beatty Park Leisure Centre."
   }
-  // Keep adding trail here--->
 };
 
 // Initialize map
@@ -187,15 +249,16 @@ function loadTrail(trailId) {
 
   // Update trail info
   document.getElementById("trail-name").textContent = trail.name;
+  document.getElementById("trail-activity").textContent = trail.activity;
   document.getElementById("trail-distance").textContent = `${trail.distance_km} km`;
-  document.getElementById("trail-duration").textContent = `${trail.duration_min} mins`;
+  document.getElementById("trail-duration").textContent = `Roughly ${trail.duration_min} mins`;
   document.getElementById("trail-difficulty").textContent = trail.difficulty;
   document.getElementById("trail-description").textContent = trail.description;
   document.getElementById("trail-details").classList.remove("hidden");
 
   // === Auto-fill form fields ===
   const activityField = document.getElementById("trail_activity");
-  const durationField = document.getElementById("trail_duration");
+  const durationField = document.getElementById("trail_duration_custom");
   const distanceField = document.getElementById("trail_distance_m");
 
   if (activityField) activityField.value = trail.activity;

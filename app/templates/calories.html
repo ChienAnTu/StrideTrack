@@ -76,19 +76,41 @@
           </select>
 
           <!-- Trail List -->
-          <div class="max-h-[300px] overflow-y-scroll space-y-2 mb-4">
-            <div class="trail-card border p-2 cursor-pointer" data-trail="kingsPark" data-activity="running">
-              <strong>Kings Park</strong>
+          <div class="max-h-[300px] overflow-y-scroll space-y-2 mb-4 pr-4">
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="kingsPark" data-activity="running">
+              <h3 class="font-medium text-lg text-gray-900">Kings Park</h3>
             </div>
-            <div class="trail-card border p-2 cursor-pointer" data-trail="hydePark" data-activity="walking">
-              <strong>Hyde Park</strong>
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="hydePark" data-activity="walking">
+              <h3 class="font-medium text-lg text-gray-900">Hyde Park</h3>
             </div>
             <!-- ... Keep adding other trails -->
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="jamesOval" data-activity="yoga">
+              <h3 class="font-medium text-lg text-gray-900">James Oval</h3>
+            </div>
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="bellsRapid" data-activity="hiking">
+              <h3 class="font-medium text-lg text-gray-900">Bells Rapid</h3>
+            </div>
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="booyeembarraPark" data-activity="walking">
+              <h3 class="font-medium text-lg text-gray-900">Booyeembara Park</h3>
+            </div>
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="cottesloeBeach" data-activity="cycling">
+              <h3 class="font-medium text-lg text-gray-900">Cottesloe Beach</h3>
+            </div>
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="windanBridge" data-activity="cycling">
+              <h3 class="font-medium text-lg text-gray-900">Windan Bridge</h3>
+            </div>
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="beattyPark" data-activity="swimming">
+              <h3 class="font-medium text-lg text-gray-900">Beatty Park</h3>
+            </div>
+            <div class="trail-card border rounded-lg p-3 cursor-pointer hover:bg-gray-50" data-trail="greenMount" data-activity="hiking">
+              <h3 class="font-medium text-lg text-gray-900">Green Mountain Trail</h3>
+            </div>
           </div>
 
           <!-- Trail Info + Map -->
           <div id="trail-details" class="hidden mb-4">
             <h3 id="trail-name" class="font-semibold text-lg"></h3>
+            <p><strong>Activity type:</strong> <span id="trail-activity"></span></p>
             <p><strong>Distance:</strong> <span id="trail-distance"></span></p>
             <p><strong>Duration:</strong> <span id="trail-duration"></span></p>
             <p><strong>Difficulty:</strong> <span id="trail-difficulty"></span></p>
@@ -97,12 +119,17 @@
 
           <!-- Hidden input fields injected by JS -->
           <input type="hidden" name="activity" id="trail_activity">
-          <input type="hidden" name="duration" id="trail_duration">
+          <input type="hidden" id="trail_duration">
           <input type="hidden" name="distance_m" id="trail_distance_m">
 
           <div id="trail-map" class="w-full h-64 rounded border mb-4"></div>
 
-          <!-- Required manual weight input -->
+          <!-- Required manual duration/weight input -->
+          <div>
+            <label for="trail_duration_custom" class="block mb-1 font-medium">Your Finishing Duration (min)</label>
+            <input type="number" name="duration" id="trail_duration_custom" min="1" required class="w-full border p-2 rounded">
+          </div>
+
           <div>
             <label for="trail_weight" class="block mb-1 font-medium">Your Weight (kg)</label>
             <input type="number" name="weight" id="trail_weight" required class="w-full border p-2 rounded">
