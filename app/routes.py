@@ -225,6 +225,12 @@ def register_routes(app):
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
+        confirm_password = request.form.get('confirmPassword')
+
+        if password != confirm_password:
+            flash('Passwords do not match.', 'error')
+            return redirect(url_for('index'))
+
 
         # Check if user exists
         if User.query.filter_by(email=email).first():
