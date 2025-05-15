@@ -28,10 +28,12 @@
             <thead>
               <tr class="text-left bg-gray-100">
                 <th class="px-4 py-2"><input type="checkbox" id="select-all"></th>
+                <th class="px-4 py-2">Date</th>
                 <th class="px-4 py-2">Type</th>
                 <th class="px-4 py-2">Duration</th>
+                <th class="px-4 py-2">Distance</th>
+                <th class="px-4 py-2">Trail</th>
                 <th class="px-4 py-2">Calories</th>
-                <th class="px-4 py-2">Date</th>
               </tr>
             </thead>
             <tbody>
@@ -40,16 +42,25 @@
                 <td class="px-4 py-2">
                   <input type="checkbox" name="selected_ids" value="{{ a.id }}" class="row-checkbox">
                 </td>
+                <td class="px-4 py-2">{{ a.activity_date }}</td>
                 <td class="px-4 py-2">{{ a.activity_type.title() }}</td>
                 <td class="px-4 py-2">{{ a.activity_length }}</td>
+                <td class="px-4 py-2">
+                  {% if a.distance_m is not none %}
+                    {{ a.distance_m|round|int }} m
+                  {% else %}
+                    -
+                  {% endif %}
+                </td>
+                <td class="px-4 py-2">{{ a.trail_name or '-' }}</td>
                 <td class="px-4 py-2">{{ a.calories_burned }} kcal</td>
-                <td class="px-4 py-2">{{ a.activity_date }}</td>
+                
               </tr>
               {% endfor %}
             </tbody>
           </table>
           {% set total_pages = (total_items // limit) + (1 if total_items % limit > 0 else 0) %}
-          <div class="flex justify-end items-center mt-4 space-x-2">
+          <div class="flex justify-end items-center mt-4 space-x-2 py-4">
             {% if page > 1 %}
             <a href="{{ url_for('share', page=page-1, limit=limit) }}"
               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm font-medium">← Prev</a>

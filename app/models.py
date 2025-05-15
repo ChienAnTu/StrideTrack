@@ -30,13 +30,10 @@ class ActivityRegistry(db.Model):
     activity_type: Mapped[str] = mapped_column(nullable=False)
     activity_length: Mapped[time] = mapped_column(Time, nullable=False)
     calories_burned: Mapped[float] = mapped_column(nullable=False, default=0.0)
-
     distance_m: Mapped[float] = mapped_column(nullable=True)
     weight_kg: Mapped[float] = mapped_column(nullable=True)
-    average_speed_mps: Mapped[float] = mapped_column(nullable=True)
-    max_speed_mps: Mapped[float] = mapped_column(nullable=True)
-    start_lat: Mapped[str] = mapped_column(nullable=True)  # GPS at the start
-    end_lat: Mapped[str] = mapped_column(nullable=True)    # GPS at the end
+    trail_name: Mapped[str] = mapped_column(nullable=True)
+
 
 
 class SharedActivity(db.Model):
