@@ -260,10 +260,12 @@ function loadTrail(trailId) {
   const activityField = document.getElementById("trail_activity");
   const durationField = document.getElementById("trail_duration_custom");
   const distanceField = document.getElementById("trail_distance_m");
+  const trailNameField = document.getElementById("trail_name");
 
   if (activityField) activityField.value = trail.activity;
   if (durationField) durationField.value = trail.duration_min;
   if (distanceField) distanceField.value = trail.distance_km * 1000;
+  if (trailNameField) trailNameField.value = trail.name;
 }
 
 // Handle activity filter
