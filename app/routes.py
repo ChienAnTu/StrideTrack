@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash, jsonify
 from app.models import User, db, ActivityRegistry, SharedActivity
 from datetime import datetime, timedelta, date
 from flask_login import login_user, logout_user, login_required, current_user
@@ -416,4 +416,27 @@ def register_routes(app):
         flash('You have been logged out.')
         return redirect(url_for('index'))
 
-
+    @app.route('/api/nutrition-suggestion')
+    def nutrition_suggestion():
+        try:
+            calories = request.args.get('calories', default=0, type=int)
+            
+            # Base suggestions
+            if calories < 300:
+                suggestion = "Light snack: Banana (105 kcal) + handful of almonds (160 kcal)"
+            elif 300 <= calories < 600:
+                suggestion = "Greek yogurt (150 kcal) + granola (200 kcal) + berries (50 kcal)"
+            else:
+                suggestion = "Grilled chicken (300 kcal) + quinoa (220 kcal) + roasted veggies (150 kcal)"
+            
+            # Add personalized touch if user is logged in
+            if current_user.is_authenticated:
+                suggestion = f"Hey {current_user.username}, try this: " + suggestion
+            
+            return jsonify({
+                'suggestion': suggestion,
+                'hydration': f"Drink {round(calories/40)}ml water"
+            })
+            
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
