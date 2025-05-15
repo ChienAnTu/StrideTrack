@@ -4,22 +4,44 @@
 <div class="flex pt-16">
   {% include "_sidebar.html" %}
   <main class="sm:ml-64 w-full p-4 mt-4">
-    <!-- main body -->
     <div class="pt-20 max-w-5xl mx-auto px-4 space-y-8">
       <h2 class="text-2xl font-semibold mb-4">Your Activity Progress</h2>
-      <form method="get" class="mb-6 flex flex-wrap items-center gap-4">
-    <label class="text-sm font-semibold">Filter by:</label>
-  </main>
 
+      <!-- Filter Form -->
+      <form method="get" class="mb-6 flex flex-wrap items-center gap-4">
+        <label class="text-sm font-semibold">Filter by:</label>
+        <input type="date" name="day" class="border p-2 rounded" value="{{ request.args.get('day', '') }}">
+        <input type="week" name="week" class="border p-2 rounded" value="{{ request.args.get('week', '') }}">
+        <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded text-sm">Apply</button>
+        {% if request.args %}
+        <a href="{{ url_for('visualise') }}" class="text-sm text-red-500 ml-2">Clear</a>
+        {% endif %}
+      </form>
+
+      <!-- Time and Calories Bar Chart -->
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-xl font-bold mb-4">Time Spent on Each Activity</h3>
+        <canvas id="activityTimeChart" class="w-full max-h-96"></canvas>
+      </div>
+
+      <!-- Time Spent Pie Chart -->
+      <div class="bg-white p-6 rounded-xl shadow-md mt-8">
+        <h3 class="text-xl font-bold mb-4">Time Spent Distribution</h3>
+        <canvas id="activityPieChart" class="w-full max-h-96"></canvas>
+      </div>
+    </div>
+  </main>
+</div>
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Flask-passed JSON data -->
 <script id="activity-data" type="application/json">
   {{ activities | tojson | safe }}
 </script>
 
-
-<!-- Pass JSON from Flask to JS -->
+<!-- JS logic to render charts -->
+<script src="{{ url_for('static', filename='script/visualise_charts.js') }}"></script>
 
 {% endblock %}
