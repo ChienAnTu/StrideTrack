@@ -185,7 +185,7 @@ def register_routes(app):
                     activity_length = (datetime.min + timedelta(minutes=duration)).time()
 
                     distance_m = request.form.get('distance_m') or None
-                    trail_name = request.form.get('trail_name') or None  # <== 新增支援 trail_name
+                    trail_name = request.form.get('trail_name') or None
 
                     new_entry = ActivityRegistry(
                         upload_user_id=current_user.id,
@@ -201,8 +201,7 @@ def register_routes(app):
 
                     db.session.add(new_entry)
                     db.session.commit()
-
-                    # 傳遞給 dashboard 使用
+                    
                     session['calories_burned'] = calories_burned
                     session['selected_activity'] = activity.title()
                     session['duration'] = duration
@@ -294,8 +293,6 @@ def register_routes(app):
 
         return render_template("visualise.html", activities=activities)
 
-
-   
     # -------------Share data view--------------
     @app.route('/shared_with_me')
     @login_required
@@ -411,8 +408,6 @@ def register_routes(app):
 
         # return render_template("share.html", activities=activities)
         return render_template("share.html", activities=activities, limit=limit, page=page, total_items=total_items)
-
-
 
     @app.route('/logout')
     def logout():

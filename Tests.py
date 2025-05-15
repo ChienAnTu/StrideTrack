@@ -1,6 +1,6 @@
 from app import create_testing_app, db
 from app.models import User, ActivityRegistry
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import unittest
@@ -37,13 +37,28 @@ def addUser(name, email, password_hash):
     db.session.add(to_add)
     db.session.commit()
 
-def addActivity(upload_user_id, activity_type, activity_date, activity_length):
-    to_add = ActivityRegistry (
-        upload_user_id = upload_user_id, 
-        upload_time = datetime.datetime.now(),
-        activity_date = activity_date,
-        activity_length = activity_length
-        )
+def addActivity(upload_user_id, activity_type, activity_date, activity_length_minutes, weight_kg=None, distance_m=None, trail_name=None):
+    from app.routes import calculate_calories
+    
+    # Convert minutes to time object
+    activity_length = (datetime.min + timedelta(minutes=activity_length_minutes)).time()
+    
+    # Default weight if not provided
+    weight = weight_kg if weight_kg is not None else 70.0
+    calories_burned = calculate_calories(activity_type, activity_length_minutes, weight)
+
+    to_add = ActivityRegistry(
+        upload_user_id=upload_user_id,
+        upload_time=datetime.now(),
+        activity_date=activity_date,
+        activity_type=activity_type,
+        activity_length=activity_length,
+        calories_burned=calories_burned,
+        distance_m=distance_m,
+        weight_kg=weight_kg,
+        trail_name=trail_name
+    )
+    
     db.session.add(to_add)
     db.session.commit()
 
@@ -82,60 +97,39 @@ class SeleniumTestHandler():
         self.parent.driver.quit()
         self.parent.app_context.pop()
 
-    def test_login_functionality(self):
-        """Test the login functionality."""
-        self.parent.driver.get(LOCALHOST)
-
-        # Locate login elements
-        login_email = self.parent.driver.find_element(By.ID, "login-email")
-        login_password = self.parent.driver.find_element(By.ID, "login-password")
-        login_button = self.parent.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
-
-        # Perform login
-        login_email.send_keys("testuser@mail.com")
-        login_password.send_keys("password123")
-        login_button.click()
-
-        # Wait for login to complete
-        t_lib.sleep(2)
-
-        # Verify login success
-        assert "Dashboard" in self.parent.driver.page_source
-
-    def test_logout_functionality(self):
-        """Test the logout functionality."""
-        self.parent.driver.get(f"{LOCALHOST}/dashboard")
-
-        # Locate and click the logout button
-        logout_button = self.parent.driver.find_element(By.LINK_TEXT, "Logout")
-        logout_button.click()
-
-        # Wait for logout to complete
-        t_lib.sleep(2)
-
-        # Verify logout success
-        assert "Log in" in self.parent.driver.page_source
-
-    def test_signup_functionality(self):
-        """Test the signup functionality."""
+    def test_signup_functionality(self, username, email, password):
+        """Test the signup functionality with parameters."""
         self.parent.driver.get(LOCALHOST)
 
         self.parent.driver.find_element(By.ID, "login").click()
         self.parent.driver.find_element(By.ID, "create-account").click()
-        # Fill out the signup form
-        username_input = self.parent.driver.find_element(By.ID, "username")
-        email_input = self.parent.driver.find_element(By.ID, "email")
-        password_input = self.parent.driver.find_element(By.ID, "password")
-        confirm_password_input = self.parent.driver.find_element(By.ID, "confirm-password")
-        terms_checkbox = self.parent.driver.find_element(By.ID, "terms")
+
+        username_input = self.parent.driver.find_element(By.ID, "signup-username")
+        email_input = self.parent.driver.find_element(By.ID, "signup-email")
+        password_input = self.parent.driver.find_element(By.ID, "signup-password")
+        confirm_password_input = self.parent.driver.find_element(By.ID, "signup-confirm-password")
         signup_submit_button = self.parent.driver.find_element(By.ID, "create-account-button")
         
-        username_input.send_keys("testUser")
-        email_input.send_keys("testuser@mail.com")
-        password_input.send_keys("password123")
-        confirm_password_input.send_keys("password123")
-        terms_checkbox.click()
+        username_input.send_keys(username)
+        email_input.send_keys(email)
+        password_input.send_keys(password)
+        confirm_password_input.send_keys(password)
         signup_submit_button.click()
+    
+    def test_signin_functionality(self, email, password):
+        self.parent.driver.get(LOCALHOST)
+
+        self.parent.driver.find_element(By.ID, "login").click()
+        self.parent.driver.find_element(By.ID, "login-button").click()
+        
+        email_input = self.parent.driver.find_element(By.ID, "login-email")
+        password_input = self.parent.driver.find_element(By.ID, "login-password")
+        login_button = self.parent.driver.find_element(By.ID, "login-button")
+        
+        email_input.send_keys(email)
+        password_input.send_keys(password)
+        login_button.click()
+
         
 class DatabaseTestHandler():
     def __init__(self, parent):
@@ -214,5 +208,8 @@ if __name__ == '__main__':
     database_test_handler.test_password_hashing()
     database_test_handler.test_user_ID()
     selenium_test_handler.setup_test_server()
-    selenium_test_handler.test_signup_functionality()
+    t_lib.sleep(1)
+    selenium_test_handler.test_signup_functionality("testUser", "testuser@mail.com", "password123")
+    t_lib.sleep(1)
+    selenium_test_handler.test_signin_functionality("testuser@mail.com", "password123")
     # selenium_test_handler.tearDown()

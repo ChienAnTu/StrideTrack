@@ -28,7 +28,7 @@ class ActivityRegistry(db.Model):
     upload_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     activity_date: Mapped[date] = mapped_column(Date, nullable=False)
     activity_type: Mapped[str] = mapped_column(nullable=False)
-    activity_length: Mapped[int] = mapped_column(Integer, nullable=False)
+    activity_length: Mapped[time] = mapped_column(nullable=False)
     calories_burned: Mapped[float] = mapped_column(nullable=False, default=0.0)
     distance_m: Mapped[float] = mapped_column(nullable=True)
     weight_kg: Mapped[float] = mapped_column(nullable=True)
@@ -39,7 +39,7 @@ class ActivityRegistry(db.Model):
 class SharedActivity(db.Model):
     __tablename__ = "SharedActivity"
 
-    activity_id: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.id'))
+    activity_id: Mapped[int] = mapped_column(ForeignKey('ActivityRegistry.id'),name="activity_id")
     user_shared_with: Mapped[str] = mapped_column(ForeignKey('Users.email'))
     sharing_user_id: Mapped[int] = mapped_column(ForeignKey('Users.user_id'), nullable=False)
 

@@ -22,7 +22,6 @@ def create_app():
     csrf = CSRFProtect()
     csrf.init_app(app)
 
-
     # --- Setup Flask-Login ---
     login_manager = LoginManager()
     login_manager.login_view = 'index'  # Redirect to 'index' if not logged in
@@ -50,6 +49,10 @@ def create_testing_app(config):
     # Initialize Flask extensions
     db.init_app(app)
     migrate.init_app(app, db)
+    
+    # CSRF Protection
+    csrf = CSRFProtect()
+    csrf.init_app(app)
 
     # --- Setup Flask-Login ---
     login_manager = LoginManager()
@@ -61,6 +64,8 @@ def create_testing_app(config):
     def load_user(user_id):
         return User.query.get(int(user_id))
     # -----------------------------------
+
+    app.jinja_env.filters['todatetime'] = lambda s: datetime.strptime(s, "%Y-%m-%d")
 
     # Register routes
     from app.routes import register_routes
