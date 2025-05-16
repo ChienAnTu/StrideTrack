@@ -428,7 +428,7 @@ def run_selenium_test(testing_handler):
     results['test_dashboard_header_link'] = selenium_test_handler.test_dashboard_header_link()
     results['test_site_navigation'] = selenium_test_handler.test_site_navigation()
     results['test_calories_manual_upload'] = selenium_test_handler.test_calories_manual_upload()
-    #selenium_test_handler.tearDown()
+    selenium_test_handler.tearDown()
     print("Selenium Testing Finished")
     return results
 
