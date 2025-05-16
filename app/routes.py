@@ -17,6 +17,18 @@ from app.services.activity_service import (
     get_shared_activity_summary_by_type
 )
 
+# from app import db  # Uncomment if using database
+def calculate_calories(activity, duration, weight):
+    met_values = {
+        "walking": 3.5,
+        "running": 8.3,
+        "cycling": 6.0,
+        "hiking": 6.0,
+        "swimming": 5.8,
+        "yoga": 2.5
+    }
+    
+    return round(duration * met_values[activity] * weight * 0.0175, 2)
 
 def register_routes(app):
     @app.route('/')
@@ -173,7 +185,7 @@ def register_routes(app):
                     activity_length = (datetime.min + timedelta(minutes=duration)).time()
 
                     distance_m = request.form.get('distance_m') or None
-                    trail_name = request.form.get('trail_name') or None  # <== 新增支援 trail_name
+                    trail_name = request.form.get('trail_name') or None
 
                     new_entry = ActivityRegistry(
                         upload_user_id=current_user.id,
@@ -189,8 +201,7 @@ def register_routes(app):
 
                     db.session.add(new_entry)
                     db.session.commit()
-
-                    # 傳遞給 dashboard 使用
+                    
                     session['calories_burned'] = calories_burned
                     session['selected_activity'] = activity.title()
                     session['duration'] = duration
@@ -282,8 +293,6 @@ def register_routes(app):
 
         return render_template("visualise.html", activities=activities)
 
-
-   
     # -------------Share data view--------------
     @app.route('/shared_with_me')
     @login_required
@@ -399,8 +408,6 @@ def register_routes(app):
 
         # return render_template("share.html", activities=activities)
         return render_template("share.html", activities=activities, limit=limit, page=page, total_items=total_items)
-
-
 
     @app.route('/logout')
     def logout():

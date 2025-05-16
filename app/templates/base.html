@@ -44,7 +44,7 @@
             <a href="{{ url_for('logout') }}" class="text-sm font-semibold text-red-500 hover:text-red-700">Logout</a>
           </div>
           {% else %}
-          <a href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span
+          <a id="login" href="#" onclick="openSignIn()" class="text-sm font-semibold text-gray-900">Log in <span
               aria-hidden="true">&rarr;</span></a>
           {% endif %}
 

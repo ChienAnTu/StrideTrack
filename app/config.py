@@ -9,3 +9,7 @@ default_db_loc = 'sqlite:///' + os.path.join(basedir, 'app.db')
 class Config:
     SQLALCHEMY_DATABASE_URI = default_db_loc
     SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-hardcoded-secret')
+    
+class TestingConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'test.db')  
+    SECRET_KEY = os.getenv('SECRET_KEY', 'fallback-hardcoded-secret')
