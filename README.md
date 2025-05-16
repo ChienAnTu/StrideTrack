@@ -145,8 +145,8 @@ Static files are organized by type (`script/`, `images/`, `styles/`), and key JS
 ------
 
 ### Testing
-
-We implemented both **unit tests** and **Selenium (UI) tests** using:
+We included a `tests/` folder that contains sample `.csv` files to help test the **batch upload** feature with realistic data.
+We also implemented both **unit tests** and **Selenium (UI) tests** using:
 
 - `unittest` for database model and backend functionality (in `Tests.py`)
 - `Selenium` for testing login/signup flows, element interaction, and DOM behaviour
