@@ -1,7 +1,7 @@
 # TrailMate
 ## A CITS5505 Agile Web Dev Group Project
 
-## 📚 Table of Contents
+## Table of Contents
 
 - [Contributors](#contributors)
 - [Purpose](#purpose)
