@@ -529,3 +529,11 @@ def register_routes(app):
 
         except Exception as e:
             return jsonify({'error': str(e)}), 500
+    
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template("404.html", title="Page Not Found"), 404
+    
+    @app.errorhandler(500)
+    def internal_error(e):
+        return render_template("500.html", title="Server Error"), 500
