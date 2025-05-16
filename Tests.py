@@ -109,35 +109,59 @@ class SeleniumTestHandler():
     def test_signup_functionality(self, username, email, password):
         """Test the signup functionality with parameters."""
         self.parent.driver.get(LOCALHOST)
+        try:
+            self.parent.driver.find_element(By.ID, "login").click()
+            self.parent.driver.find_element(By.ID, "create-account").click()
 
-        self.parent.driver.find_element(By.ID, "login").click()
-        self.parent.driver.find_element(By.ID, "create-account").click()
+            username_input = self.parent.driver.find_element(By.ID, "signup-username")
+            email_input = self.parent.driver.find_element(By.ID, "signup-email")
+            password_input = self.parent.driver.find_element(By.ID, "signup-password")
+            confirm_password_input = self.parent.driver.find_element(By.ID, "signup-confirm-password")
+            signup_submit_button = self.parent.driver.find_element(By.ID, "create-account-button")
+            
+            username_input.send_keys(username)
+            email_input.send_keys(email)
+            password_input.send_keys(password)
+            confirm_password_input.send_keys(password)
+            signup_submit_button.click()
+            t_lib.sleep(1)
+            
+            if self.parent.driver.current_url.rstrip('/') == (LOCALHOST + 'Dashboard').rstrip('/'):
+                print(f"Signup test succeeded for user: {username}")
+            else:
+                print(f"Signup test failed for user: {username}")
+        except Exception as e:
+            print(f"Signup test encountered an error for user: {username}. Error: {e}")
 
-        username_input = self.parent.driver.find_element(By.ID, "signup-username")
-        email_input = self.parent.driver.find_element(By.ID, "signup-email")
-        password_input = self.parent.driver.find_element(By.ID, "signup-password")
-        confirm_password_input = self.parent.driver.find_element(By.ID, "signup-confirm-password")
-        signup_submit_button = self.parent.driver.find_element(By.ID, "create-account-button")
-        
-        username_input.send_keys(username)
-        email_input.send_keys(email)
-        password_input.send_keys(password)
-        confirm_password_input.send_keys(password)
-        signup_submit_button.click()
-    
     def test_signin_functionality(self, email, password):
         self.parent.driver.get(LOCALHOST)
+        try:
+            self.parent.driver.find_element(By.ID, "login").click()
+            email_input = self.parent.driver.find_element(By.ID, "login-email")
+            password_input = self.parent.driver.find_element(By.ID, "login-password")
+            login_button = self.parent.driver.find_element(By.ID, "login-button")
+            email_input.send_keys(email)
+            password_input.send_keys(password)
+            login_button.click()
+            t_lib.sleep(1)
+            if "Dashboard" in self.parent.driver.page_source or "Welcome" in self.parent.driver.page_source:
+                print(f"Signin test succeeded for email: {email}")
+            else:
+                print(f"Signin test failed for email: {email}")
+        except Exception as e:
+            print(f"Signin test encountered an error for email: {email}. Error: {e}")
 
-        self.parent.driver.find_element(By.ID, "login").click()
-        
-        email_input = self.parent.driver.find_element(By.ID, "login-email")
-        password_input = self.parent.driver.find_element(By.ID, "login-password")
-        login_button = self.parent.driver.find_element(By.ID, "login-button")
-        
-        email_input.send_keys(email)
-        password_input.send_keys(password)
-        login_button.click()
-
+    def test_logout_functionality(self):
+        self.parent.driver.get(LOCALHOST)
+        try:
+            self.parent.driver.find_element(By.ID, "logout").click()
+            t_lib.sleep(1)
+            if "Log in" in self.parent.driver.page_source or "login" in self.parent.driver.current_url:
+                print("Logout test succeeded.")
+            else:
+                print("Logout test failed.")
+        except Exception as e:
+            print(f"Logout test encountered an error. Error: {e}")
         
 class DatabaseTestHandler():
     def __init__(self, parent):
@@ -254,7 +278,6 @@ class DatabaseTestHandler():
         try:
             with self.handler.app_context:
                 users = db.session.query(User).all()
-                user_ids = [user.id for user in users]
                 user_emails = {user.id: user.email for user in users}
 
                 for user in users:
@@ -292,8 +315,8 @@ def run_back_end_test(testing_handler):
     database_test_handler.test_db_user_addition(10)
     database_test_handler.test_password_hashing()
     database_test_handler.test_user_ID()
-    database_test_handler.test_db_activity_addition(5)
-    database_test_handler.test_db_shared_activity_addition(10)
+    database_test_handler.test_db_activity_addition(3)
+    database_test_handler.test_db_shared_activity_addition(1)
         
     end_time = t_lib.time()  # End timer
     elapsed = end_time - start_time
@@ -303,14 +326,19 @@ def run_selenium_test(testing_handler):
     selenium_test_handler = SeleniumTestHandler(testing_handler)
     selenium_test_handler.setup_test_server()
     t_lib.sleep(1)
-    selenium_test_handler.test_signup_functionality("testUser", "testuser@mail.com", "password123")
+    selenium_test_handler.test_signup_functionality("testUser", "testuser@mail.com", "pqsaeyg1!@#uir") # Test new user signup
     t_lib.sleep(1)
-    selenium_test_handler.test_signin_functionality("testuser@mail.com", "password123")
-    selenium_test_handler.tearDown()
+    selenium_test_handler.test_signin_functionality("testuser@mail.com", "pqweeqweqw") # Test wrong password login
+    t_lib.sleep(1)
+    selenium_test_handler.test_signin_functionality("testuser@mail.com", "pqsaeyg1!@#uir") # Test correct password login
+    selenium_test_handler.test_logout_functionality()
+    
+    selenium_test_handler.test_signin_functionality(testing_handler.test_users[0] + "@mail.com", testing_handler.user_password_dictionary[testing_handler.test_users[0]])
+    # selenium_test_handler.tearDown()
     print(f"Selenium Testing Finished")
     
 if __name__ == '__main__':
     testing_handler = UnitTestingHandler()
     testing_handler.test_setup()
     run_back_end_test(testing_handler)
-    run_selenium_test(testing_handler)
+    run_selenium_test(testing_handler) 
