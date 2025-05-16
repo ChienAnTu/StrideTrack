@@ -8,6 +8,12 @@ venv/
 __pycache__/
 /app/__pycache__
 /node_modules
-
+/app/services/__pycache__
 # Ignore structure file
 structure.txt
+
+# Ignore Frontend folder
+/Frontend
+
+# Ignore app.db 
+/app/app.db

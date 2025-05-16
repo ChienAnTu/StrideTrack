@@ -1,4 +1,4 @@
-activity_date,activity_type,distance_m,weight_kg,duration_minutes,average_speed_mps,max_speed_mps,start_lat,end_lat
-10/04/2025,Running,5000,65,30,2.78,4.5,"[40.70327, -73.99619]","[40.69340, -73.97922]"
-11/04/2025,Cycling,12000,70,45,4.5,8.3,"[40.71234, -74.00597]","[40.70600, -73.98000]"
-14/04/2025,Walking,3500,60,40,1.8,2.5,"[40.73000, -73.99500]","[40.73500, -73.98500]"
+activity_date,activity_type,distance_m,weight_kg,duration_minutes
+10/05/2025,Running,5000,65,30
+11/05/2025,Cycling,12000,70,45
+14/05/2025,Walking,3500,60,40
