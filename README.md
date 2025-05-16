@@ -103,7 +103,7 @@ Static files are organized by type (`script/`, `images/`, `styles/`), and key JS
 - **Calories Leaderboard**
   Stay motivated by seeing how you rank in the community—friendly competition makes it fun!
 - **Personal Nutrition Suggestions API**
-  Burned some calories? Your TrailMate will suggest food and hydration ideas to help you recover smartly.
+  Burned some calories? Your TrailMate will use an **AJAX Request** to scour the internet suggest food and hydration ideas to help you recover smartly.
 
 **Security**
 
