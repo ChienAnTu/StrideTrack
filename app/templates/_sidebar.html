@@ -4,37 +4,37 @@
   <div class="h-full p-4 overflow-y-auto">
     <ul class="space-y-2 font-medium">
       <li>
-        <a href="{{ url_for('dashboard') }}"
+        <a id="sidebar-dashboard" href="{{ url_for('dashboard') }}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group {% if request.path == '/dashboard' %}bg-orange-100{% endif %}">
           <span class="ms-3">Dashboard</span>
         </a>
       </li>
       <li>
-        <a href="{{ url_for('share') }}"
+        <a id="sidebar-share" href="{{ url_for('share') }}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group {% if request.path == '/share' %}bg-orange-100{% endif %}">
           <span class="ms-3">My Activities</span>
         </a>
       </li>
       <li>
-        <a href="{{ url_for('shared_with_me') }}"
+        <a id="sidebar-shared" href="{{ url_for('shared_with_me') }}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group {% if request.path == '/shared_with_me' %}bg-orange-100{% endif %}">
           <span class="ms-3">Shared With Me</span>
         </a>
       </li>
       <li>
-        <a href="{{ url_for('challenges') }}"
+        <a id="sidebar-challenges" href="{{ url_for('challenges') }}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group {% if request.path == '/challenges' %}bg-orange-100{% endif %}">
           <span class="ms-3">Challenges</span>
         </a>
       </li>
       <li>
-        <a href="{{ url_for('visualise') }}"
+        <a id="sidebar-visualise" href="{{ url_for('visualise') }}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group {% if request.path == '/visualise' %}bg-orange-100{% endif %}">
           <span class="ms-3">Progress</span>
         </a>
       </li>
       <li>
-        <a href="{{ url_for('calories') }}"
+        <a id="sidebar-upload" href="{{ url_for('calories') }}"
            class="flex items-center p-2 text-gray-900 rounded-lg hover:bg-orange-100 group {% if request.path == '/calories' %}bg-orange-100{% endif %}">
           <span class="ms-3">Upload Data</span>
         </a>
