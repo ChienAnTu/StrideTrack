@@ -45,7 +45,7 @@
         <!-- Page Links -->
         <div class="flex items-center space-x-6">
           {% if current_user.is_authenticated %}
-          <a href="{{ url_for('dashboard') }}"
+          <a id="header-dashboard" href="{{ url_for('dashboard') }}"
             class="text-sm font-medium text-gray-700 hover:text-white hover:bg-orange-500 px-3 py-2 rounded-md {% if request.path == '/dashboard' %}bg-gray-900 text-orange-500{% endif %}">Dashboard</a>
 
 
