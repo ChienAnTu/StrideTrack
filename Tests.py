@@ -353,7 +353,6 @@ class DatabaseTestHandler():
                         activity_length_minutes = random.randint(10, 120)
                         weight_kg = round(random.uniform(50, 100), 1)
                         distance_m = round(random.uniform(500, 20000), 1)
-                        t_lib.sleep(0.1 * i)
                         addActivity(
                             upload_user_id=user.id,
                             activity_type=activity_type,
@@ -401,8 +400,8 @@ def run_back_end_test(testing_handler):
     results['test_db_user_addition'] = database_test_handler.test_db_user_addition(10)
     results['test_password_hashing'] = database_test_handler.test_password_hashing()
     results['test_user_ID'] = database_test_handler.test_user_ID()
-    results['test_db_activity_addition'] = database_test_handler.test_db_activity_addition(3)
-    results['test_db_shared_activity_addition'] = database_test_handler.test_db_shared_activity_addition(1)
+    results['test_db_activity_addition'] = database_test_handler.test_db_activity_addition(20)
+    results['test_db_shared_activity_addition'] = database_test_handler.test_db_shared_activity_addition(3)
     end_time = t_lib.time()  # End timer
     elapsed = end_time - start_time
     print("\nBack End Testing Finished: Total test time: {:.2f} seconds".format(elapsed))
@@ -428,7 +427,7 @@ def run_selenium_test(testing_handler):
     results['test_dashboard_header_link'] = selenium_test_handler.test_dashboard_header_link()
     results['test_site_navigation'] = selenium_test_handler.test_site_navigation()
     results['test_calories_manual_upload'] = selenium_test_handler.test_calories_manual_upload()
-    selenium_test_handler.tearDown()
+    #selenium_test_handler.tearDown()
     print("Selenium Testing Finished")
     return results
 
