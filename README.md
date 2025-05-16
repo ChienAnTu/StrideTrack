@@ -229,13 +229,21 @@ This script will:
 If all tests pass, you will see success messages like:
 
 ```
-App Setup Test passed
-Database Randomized Addition Test passed with 10 random users.
-Password Hashing Testing passed
-User ID auto-increment testing passed
-Random activity addition test passed: 5 activities per user.
-Random shared activity addition test passed: 10 shared activities per user.
-Selenium Testing Finished
+Back End Test Results:
+  test_database_creation: PASSED
+  test_db_user_addition: PASSED
+  test_password_hashing: PASSED
+  test_user_ID: PASSED
+  test_db_activity_addition: PASSED
+  test_db_shared_activity_addition: PASSED
+Selenium Test Results:
+  test_signup_functionality: PASSED
+  test_signin_wrong_password: PASSED
+  test_signin_correct_password: PASSED
+  test_logout_functionality: PASSED
+  test_signin_random_user: PASSED
+  test_dashboard_header_link: PASSED
+  test_site_navigation: PASSED
 ```
 
 ## Configuring Environment
